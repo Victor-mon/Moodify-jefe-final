@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodify — Iniciar sesión</title>
+  <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+<div class="login-root">
+
+  <!-- Fondo animado -->
+  <div class="login-stars" id="login-stars"></div>
+  <div class="login-bg-layer">
+    <div id="login-bgl-a"></div>
+    <div id="login-bgl-b" style="opacity:0;"></div>
+  </div>
+
+  <!-- Panel izquierdo -->
+  <div class="login-left">
+    <div class="login-left-content">
+      <div class="login-brand">Mood<span id="login-ify">ify</span></div>
+      <p class="login-tagline">
+        Transforma tus mensajes de trabajo al tono correcto,
+        con IA adaptada al contexto laboral mexicano.
+      </p>
+      <div class="login-features">
+        <div class="login-feature"><span class="login-fdot" id="login-d1"></span>3 tonos: diplomático, ejecutivo y casual</div>
+        <div class="login-feature"><span class="login-fdot" id="login-d2"></span>Historial y favoritos guardados</div>
+        <div class="login-feature"><span class="login-fdot" id="login-d3"></span>Traducción automática al inglés</div>
+        <div class="login-feature"><span class="login-fdot" id="login-d4"></span>Estadísticas de tus mensajes</div>
+      </div>
+      <div class="login-emolabel" id="login-emolabel">— calma</div>
+    </div>
+    <div class="login-divider" id="login-divider"></div>
+  </div>
+
+  <!-- Panel derecho: formulario -->
+  <div class="login-right">
+    <div class="login-card">
+      <div class="login-heading">Bienvenido<span id="login-h1acc">.</span></div>
+      <div class="login-heading-sub" id="login-card-sub">Accede a tu cuenta para continuar.</div>
+
+      <!-- Tabs -->
+      <div class="login-tabs">
+        <button class="login-tab-btn active" id="tab-login-btn" onclick="switchTab('login')">Iniciar sesión</button>
+        <button class="login-tab-btn"        id="tab-reg-btn"   onclick="switchTab('registro')">Crear cuenta</button>
+      </div>
+
+      <!-- Panel login -->
+      <div class="login-panel active" id="panel-login">
+        <div class="field-group">
+          <label class="field-label" for="login-email">Correo electrónico</label>
+          <input class="field-input" type="email" id="login-email" placeholder="tu@correo.com" autocomplete="email">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="login-pass">Contraseña</label>
+          <input class="field-input" type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        </div>
+        <button class="login-btn" id="btn-login" onclick="doLogin()">Iniciar sesión</button>
+        <div class="login-msg" id="msg-login"></div>
+      </div>
+
+      <!-- Panel registro -->
+      <div class="login-panel" id="panel-registro">
+        <div class="field-group">
+          <label class="field-label" for="reg-username">Nombre de usuario</label>
+          <input class="field-input" type="text" id="reg-username" placeholder="tucuate123">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="reg-email">Correo electrónico</label>
+          <input class="field-input" type="email" id="reg-email" placeholder="tu@correo.com" autocomplete="email">
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="reg-pass">Contraseña</label>
+          <input class="field-input" type="password" id="reg-pass" placeholder="••••••••" autocomplete="new-password">
+        </div>
+        <button class="login-btn" id="btn-registro" onclick="doRegistro()">Crear cuenta</button>
+        <div class="login-msg" id="msg-registro"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/login.js"></script>
+</body>
+</html>

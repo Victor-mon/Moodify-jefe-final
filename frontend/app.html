@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moodify</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- Overlay de carga -->
+<div id="moodify-overlay">
+  <div class="overlay-eyes">
+    <div class="ov-eye-unit">
+      <div class="ov-brow"></div>
+      <div class="ov-eye"><div class="ov-pupil"></div></div>
+    </div>
+    <div class="ov-eye-unit">
+      <div class="ov-brow" style="animation-delay:0.15s"></div>
+      <div class="ov-eye"><div class="ov-pupil"></div></div>
+    </div>
+  </div>
+  <div class="dot-bar-wrap">
+    <div class="dot-bar-track">
+      <div class="dot-bar-progress" id="ov-prog"></div>
+      <div class="dot-bar-dot" id="ov-dot" style="left:0%"></div>
+    </div>
+    <div class="dot-bar-meta">
+      <span class="dot-bar-phase" id="ov-phase">INICIANDO</span>
+      <span class="dot-bar-pct"   id="ov-pct">0%</span>
+    </div>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="top-nav" id="top-nav">
+  <div class="nav-tabs" id="nav-tabs">
+    <button class="nav-tab active" data-tab="transformar" onclick="switchPanel('transformar')">✦ Transformar</button>
+    <button class="nav-tab"        data-tab="historial"   onclick="switchPanel('historial')">📋 Historial</button>
+    <button class="nav-tab"        data-tab="favoritos"   onclick="switchPanel('favoritos')">★ Favoritos</button>
+    <button class="nav-tab locked" data-tab="estadisticas" id="tab-stats">📊 Estadísticas</button>
+  </div>
+  <div class="nav-right">
+    <div class="nav-dot"></div>
+    <span class="nav-username" id="nav-username">@usuario</span>
+    <button class="btn-nav-logout" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════
+     PANEL: TRANSFORMAR
+════════════════════════════════════ -->
+<div class="main-wrap app-panel active" id="panel-transformar">
+
+  <div class="moodify-header">
+    <div class="moodify-titulo">
+      M<span class="eyes-inline">
+        <span class="eye-unit"><span class="brow"></span><span class="eye" id="eye1"></span></span>
+        <span class="eye-unit"><span class="brow"></span><span class="eye" id="eye2"></span></span>
+      </span>DIFY
+    </div>
+    <div class="moodify-sub"><span class="moodify-sub-accent">▸</span> REESCRITURA INTELIGENTE CON IA</div>
+  </div>
+
+  <div class="transform-grid">
+    <!-- Columna izquierda -->
+    <div>
+      <textarea
+        class="textarea-main"
+        id="msg-input"
+        placeholder="Escribe aquí tu mensaje — con groserías, slang, emojis o como salga..."
+        oninput="onInputChange()"
+        onkeydown="if(event.ctrlKey&&event.key==='Enter')doTransform()"
+      ></textarea>
+      <button class="btn-transform" onclick="doTransform()">Transformar ✦</button>
+
+      <!-- Detector de idioma -->
+      <div class="detector-box" id="detector-box">
+        <div class="det-neutral">🌐 Idioma — Escribe para detectar</div>
+      </div>
+
+      <!-- Asesor emocional -->
+      <div class="clippy-wrap" id="clippy-wrap" style="display:none;">
+        <div class="clippy-header">
+          <span class="clip-dot"></span> MOODIFY DICE
+        </div>
+        <div id="clippy-items"></div>
+      </div>
+    </div>
+
+    <!-- Columna derecha -->
+    <div>
+      <!-- Barra de idioma de salida -->
+      <div class="lang-bar">
+        <span class="lang-label">🌐 Salida en</span>
+        <button class="lang-btn on" id="btn-es" onclick="selectLang('es')">✓ ES 🇲🇽</button>
+        <button class="lang-btn"   id="btn-en" onclick="selectLang('en')">EN 🇺🇸</button>
+        <button class="btn-translate" onclick="doTranslate()">Traducir ✦</button>
+      </div>
+
+      <div class="outputs-label">— VERSIONES ADAPTADAS</div>
+
+      <!-- Diplomático -->
+      <div class="output-section">
+        <div class="output-header oh-dipl">
+          <span class="tone-badge badge-dipl">🤝 Diplomático</span>
+        </div>
+        <div class="output-body ob-dipl" id="out-dipl">
+          <span class="output-placeholder">La versión diplomática aparecerá aquí...</span>
+          <button class="copy-btn" onclick="copyText('out-dipl')" style="display:none;">Copiar</button>
+        </div>
+      </div>
+
+      <!-- Ejecutivo -->
+      <div class="output-section">
+        <div class="output-header oh-ejec">
+          <span class="tone-badge badge-ejec">💼 Ejecutivo</span>
+        </div>
+        <div class="output-body ob-ejec" id="out-ejec">
+          <span class="output-placeholder">La versión ejecutiva aparecerá aquí...</span>
+          <button class="copy-btn" onclick="copyText('out-ejec')" style="display:none;">Copiar</button>
+        </div>
+      </div>
+
+      <!-- Casual -->
+      <div class="output-section">
+        <div class="output-header oh-casu">
+          <span class="tone-badge badge-casu">😊 Casual</span>
+        </div>
+        <div class="output-body ob-casu" id="out-casu">
+          <span class="output-placeholder">La versión casual aparecerá aquí...</span>
+          <button class="copy-btn" onclick="copyText('out-casu')" style="display:none;">Copiar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     PANEL: HISTORIAL
+════════════════════════════════════ -->
+<div class="main-wrap app-panel" id="panel-historial">
+  <div class="section-wrap">
+    <button class="back-btn" onclick="switchPanel('transformar')">← Volver a Transformar</button>
+    <div class="section-title">— HISTORIAL DE MENSAJES</div>
+    <div id="historial-content"><div class="empty-state">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     PANEL: FAVORITOS
+════════════════════════════════════ -->
+<div class="main-wrap app-panel" id="panel-favoritos">
+  <div class="section-wrap">
+    <button class="back-btn" onclick="switchPanel('transformar')">← Volver a Transformar</button>
+    <div class="section-title">— FAVORITOS</div>
+    <div id="favoritos-content"><div class="empty-state">Cargando...</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     PANEL: ESTADÍSTICAS
+════════════════════════════════════ -->
+<div class="main-wrap app-panel" id="panel-estadisticas">
+  <div class="section-wrap">
+    <button class="back-btn" onclick="switchPanel('transformar')">← Volver a Transformar</button>
+    <div class="section-title">— TUS ESTADÍSTICAS</div>
+    <div id="stats-content"><div class="empty-state">Cargando...</div></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/historial.js"></script>
+</body>
+</html>

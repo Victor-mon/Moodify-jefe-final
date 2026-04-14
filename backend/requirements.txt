@@ -1,0 +1,12 @@
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+pydantic==2.7.1
+supabase==2.4.0
+python-dotenv==1.0.1
+torch==2.2.2
+transformers==4.40.2
+accelerate==0.29.3
+bitsandbytes==0.43.1
+sentencepiece==0.2.0
+protobuf==4.25.3

@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    background: #060810;
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, sans-serif;
+}
+
+/* ── Layout raíz ── */
+.login-root {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #060810;
+}
+
+/* ── Fondo cósmico ── */
+.login-bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+#login-bgl-a, #login-bgl-b {
+    position: absolute;
+    inset: 0;
+    transition: opacity 4s ease;
+}
+.login-stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+/* ── Panel izquierdo ── */
+.login-left {
+    flex: 0 0 50%;
+    min-height: 100vh;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 56px;
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+}
+.login-left::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(255,255,255,0.007) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.007) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+}
+.login-divider {
+    position: absolute;
+    right: 0;
+    top: 6%;
+    bottom: 6%;
+    width: 1px;
+    transition: background 3.5s ease;
+}
+.login-left-content { position: relative; z-index: 1; }
+
+.login-brand {
+    font-size: 2.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -2.5px;
+    line-height: 1;
+    margin-bottom: 14px;
+}
+#login-ify {
+    transition: color 3.5s ease, text-shadow 3.5s ease;
+}
+.login-tagline {
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.26);
+    line-height: 1.9;
+    max-width: 275px;
+    font-weight: 300;
+    margin-bottom: 40px;
+    letter-spacing: 0.1px;
+}
+.login-features { display: flex; flex-direction: column; gap: 12px; }
+.login-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.28);
+    font-weight: 300;
+}
+.login-fdot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background 3.5s ease, box-shadow 3.5s ease;
+}
+.login-emolabel {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.18);
+    margin-top: 28px;
+    font-weight: 400;
+    transition: color 3.5s ease;
+}
+
+/* ── Panel derecho ── */
+.login-right {
+    flex: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 44px 40px;
+    position: relative;
+    z-index: 2;
+}
+
+/* ── Card ── */
+.login-card {
+    width: 100%;
+    max-width: 360px;
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(32px) saturate(1.6);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 22px;
+    padding: 40px 36px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+}
+
+.login-heading {
+    font-size: 1.85rem;
+    font-weight: 500;
+    color: #f0f0f8;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 5px;
+}
+#login-h1acc { transition: color 3.5s ease; }
+.login-heading-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    font-weight: 300;
+    letter-spacing: 0.2px;
+    margin-bottom: 30px;
+    min-height: 18px;
+    transition: opacity 0.4s ease;
+}
+
+/* ── Tabs ── */
+.login-tabs {
+    display: flex;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 11px;
+    padding: 3px;
+    gap: 3px;
+    margin-bottom: 28px;
+}
+.login-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.18);
+    padding: 10px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.2px;
+    transition: background 3.5s ease, color 3.5s ease, box-shadow 3.5s ease;
+}
+.login-tab-btn.active { font-weight: 500; }
+
+/* ── Campos ── */
+.field-group { margin-bottom: 20px; }
+.field-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+}
+.field-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding: 8px 0;
+    font-size: 13.5px;
+    color: #e0e0f0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    caret-color: #a0d888;
+    outline: none;
+    transition: border-color 0.25s;
+}
+.field-input:focus { border-bottom-color: rgba(130,80,255,0.5); }
+.field-input::placeholder { color: rgba(255,255,255,0.12); }
+
+/* ── Botón principal ── */
+.login-btn {
+    width: 100%;
+    background: rgba(8,5,20,0.75);
+    border-radius: 11px;
+    font-weight: 500;
+    font-size: 13.5px;
+    padding: 13px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    margin-top: 8px;
+    font-family: 'Inter', sans-serif;
+    backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 3.5s ease, box-shadow 3.5s ease, color 3.5s ease;
+}
+.login-btn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -60%;
+    width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    animation: login-shimmer 3s ease-in-out infinite;
+}
+@keyframes login-shimmer {
+    0%   { left: -60%; }
+    100% { left: 120%; }
+}
+
+/* ── Mensajes feedback ── */
+.login-msg {
+    font-size: 12px;
+    text-align: center;
+    margin-top: 14px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-weight: 400;
+    letter-spacing: 0.1px;
+    display: none;
+}
+.login-msg.visible { display: block; }
+.login-msg-ok  { color: #a8e090; background: rgba(125,191,106,0.07); border: 1px solid rgba(125,191,106,0.18); }
+.login-msg-err { color: #ffaa98; background: rgba(232,100,80,0.07);  border: 1px solid rgba(232,100,80,0.18); }
+
+/* ── Panel oculto ── */
+.login-panel { display: none; }
+.login-panel.active { display: block; }
+
+@keyframes login-twinkle {
+    0%,100% { opacity: var(--mn,0.08); }
+    50%     { opacity: var(--mx,0.5);  }
+}
