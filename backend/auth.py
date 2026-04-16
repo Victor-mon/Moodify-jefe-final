@@ -11,7 +11,7 @@ MINIMO_STATS = 10
 
 supabase: Client = create_client(
     SUPABASE_URL, SUPABASE_KEY,
-    options=ClientOptions(postgrest_client_timeout=60, storage_client_timeout=60)
+    options=ClientOptions(postgrest_client_timeout=120, storage_client_timeout=120)
 )
 
 # ── Auth ─────────────────────────────────────────────────────
@@ -42,7 +42,16 @@ def auth_registro(email: str, password: str, username: str) -> tuple:
 
 def auth_login(email: str, password: str) -> tuple:
     try:
-        res = supabase.auth.sign_in_with_password({"email": email.strip(), "password": password})
+        import time
+        for intento in range(2):
+            try:
+                res = supabase.auth.sign_in_with_password({"email": email.strip(), "password": password})
+                break
+            except Exception as e:
+                if intento == 0 and "timed out" in str(e).lower():
+                    time.sleep(1)
+                    continue
+                raise
         profile = supabase.table("profiles").select("username").eq("id", res.user.id).execute()
         username = profile.data[0]["username"] if profile.data else res.user.email.split("@")[0]
         token = res.session.access_token
