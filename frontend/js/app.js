@@ -13,7 +13,7 @@ let loadRunning = false;
 let loadProg   = 0;
 
 // ── Guard: redirige si no hay sesión ──────────────────────────
-if (!token) { window.location.href = 'index.html'; }
+if (!token) { window.location.href = '/'; }
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
@@ -55,7 +55,7 @@ async function apiGet(endpoint) {
 function doLogout() {
   localStorage.removeItem('moodify_token');
   localStorage.removeItem('moodify_username');
-  window.location.href = 'index.html';
+  window.location.href = '/';
 }
 
 // ── Panel navigation ──────────────────────────────────────────

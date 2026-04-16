@@ -158,7 +158,7 @@ async function doLogin() {
     // Guarda el token y redirige
     localStorage.setItem('moodify_token',    data.token);
     localStorage.setItem('moodify_username', data.username);
-    window.location.href = 'app.html';
+    window.location.href = '/app';
   } catch (e) {
     showMsg('msg-login', '❌ Error de conexión. ¿Está corriendo el backend?', false);
   } finally {

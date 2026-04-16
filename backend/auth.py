@@ -7,10 +7,16 @@ load_dotenv()
 
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_SERVICE  = os.getenv("SUPABASE_SERVICE_KEY")
 MINIMO_STATS = 10
 
 supabase: Client = create_client(
     SUPABASE_URL, SUPABASE_KEY,
+    options=ClientOptions(postgrest_client_timeout=120, storage_client_timeout=120)
+)
+
+db: Client = create_client(
+    SUPABASE_URL, SUPABASE_SERVICE,
     options=ClientOptions(postgrest_client_timeout=120, storage_client_timeout=120)
 )
 
@@ -23,12 +29,12 @@ def auth_registro(email: str, password: str, username: str) -> tuple:
         if len(username.strip()) < 3:
             return False, "❌ El nombre de usuario debe tener al menos 3 caracteres."
         username = username.strip().lower()
-        existing = supabase.table("profiles").select("id").eq("username", username).execute()
+        existing = db.table("profiles").select("id").eq("username", username).execute()
         if existing.data:
             return False, "❌ Ese nombre de usuario ya está en uso."
         res = supabase.auth.sign_up({"email": email, "password": password})
         if res.user:
-            supabase.table("profiles").insert({"id": res.user.id, "username": username}).execute()
+            db.table("profiles").insert({"id": res.user.id, "username": username}).execute()
             return True, "✅ Cuenta creada exitosamente."
         return False, "❌ No se pudo crear la cuenta."
     except Exception as e:
@@ -52,7 +58,7 @@ def auth_login(email: str, password: str) -> tuple:
                     time.sleep(1)
                     continue
                 raise
-        profile = supabase.table("profiles").select("username").eq("id", res.user.id).execute()
+        profile = db.table("profiles").select("username").eq("id", res.user.id).execute()
         username = profile.data[0]["username"] if profile.data else res.user.email.split("@")[0]
         token = res.session.access_token
         return True, "✅ Bienvenido", token, username
@@ -66,7 +72,6 @@ def auth_login(email: str, password: str) -> tuple:
 
 
 def get_user_from_token(token: str):
-    """Valida el JWT de Supabase y devuelve el user object."""
     try:
         res = supabase.auth.get_user(token)
         return res.user if res else None
@@ -78,7 +83,7 @@ def get_user_from_token(token: str):
 
 def guardar_historial(user_id: str, mensaje, dipl, ejec, casu, tipo, tono, intensidad):
     try:
-        supabase.table("historiales").insert({
+        db.table("historiales").insert({
             "user_id":             user_id,
             "mensaje_original":    mensaje[:500],
             "version_diplomatica": dipl[:500],
@@ -95,7 +100,7 @@ def guardar_historial(user_id: str, mensaje, dipl, ejec, casu, tipo, tono, inten
 
 def obtener_historial(user_id: str, limite=30):
     try:
-        res = supabase.table("historiales").select("*") \
+        res = db.table("historiales").select("*") \
             .eq("user_id", user_id) \
             .order("created_at", desc=True).limit(limite).execute()
         return res.data or []
@@ -106,7 +111,7 @@ def obtener_historial(user_id: str, limite=30):
 
 def obtener_favoritos(user_id: str):
     try:
-        res = supabase.table("historiales").select("*") \
+        res = db.table("historiales").select("*") \
             .eq("user_id", user_id).eq("es_favorito", True) \
             .order("created_at", desc=True).execute()
         return res.data or []
@@ -117,7 +122,7 @@ def obtener_favoritos(user_id: str):
 
 def togglear_favorito(record_id: str, estado: bool, user_id: str) -> bool:
     try:
-        supabase.table("historiales") \
+        db.table("historiales") \
             .update({"es_favorito": not estado}) \
             .eq("id", record_id).eq("user_id", user_id).execute()
         return not estado
@@ -127,7 +132,7 @@ def togglear_favorito(record_id: str, estado: bool, user_id: str) -> bool:
 
 def obtener_estadisticas(user_id: str):
     try:
-        res = supabase.table("historiales") \
+        res = db.table("historiales") \
             .select("tipo_mensaje,tono_emocional,es_favorito,created_at") \
             .eq("user_id", user_id).execute()
         items = res.data or []
