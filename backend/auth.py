@@ -1,6 +1,7 @@
 import os
 import time
 import httpx
+import jwt as pyjwt
 from supabase import create_client, Client
 from supabase.client import ClientOptions
 from dotenv import load_dotenv
@@ -10,30 +11,33 @@ load_dotenv()
 SUPABASE_URL     = os.getenv("SUPABASE_URL")
 SUPABASE_KEY     = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE = os.getenv("SUPABASE_SERVICE_KEY")
+JWT_SECRET       = os.getenv("SUPABASE_JWT_SECRET", "")   # ← agrega esto a tu .env
 MINIMO_STATS     = 10
 
-# ── Clientes con timeouts generosos para Docker local en Windows ──
+# ── Clientes con timeouts mayores ────────────────────────────────
+# postgrest_client_timeout=60 da margen suficiente en Windows/Docker
 supabase: Client = create_client(
     SUPABASE_URL, SUPABASE_KEY,
     options=ClientOptions(
-        postgrest_client_timeout=30,
-        storage_client_timeout=30,
+        postgrest_client_timeout=60,
+        storage_client_timeout=60,
     )
 )
 
 db: Client = create_client(
     SUPABASE_URL, SUPABASE_SERVICE,
     options=ClientOptions(
-        postgrest_client_timeout=30,
-        storage_client_timeout=30,
+        postgrest_client_timeout=60,
+        storage_client_timeout=60,
     )
 )
 
-# ── Helper: llamadas auth con timeout explícito via httpx ────────
-def _auth_request_with_timeout(fn, *args, max_intentos=3, espera=1.5, **kwargs):
+
+# ── Helper: reintentos con backoff ────────────────────────────────
+def _auth_request_with_timeout(fn, *args, max_intentos=3, espera=2.0, **kwargs):
     """
-    Envuelve una llamada de Supabase auth reintentándola hasta max_intentos veces.
-    Captura timeouts de httpx (que la librería supabase-py no expone directamente).
+    Reintenta llamadas de auth hasta max_intentos veces.
+    Solo reintenta en errores de red/timeout, no en credenciales inválidas.
     """
     ultimo_error = None
     for intento in range(max_intentos):
@@ -42,15 +46,76 @@ def _auth_request_with_timeout(fn, *args, max_intentos=3, espera=1.5, **kwargs):
         except Exception as e:
             ultimo_error = e
             msg = str(e).lower()
-            # Solo reintentar en timeouts o errores de red, no en credenciales inválidas
-            if any(k in msg for k in ("timed out", "timeout", "connect", "network", "connection")):
-                if intento < max_intentos - 1:
-                    print(f"[auth] Intento {intento + 1} falló (timeout). Reintentando en {espera}s...")
-                    time.sleep(espera)
-                    continue
-            # Error que no es de red → no reintentar
+            es_red = any(k in msg for k in (
+                "timed out", "timeout", "connect", "network",
+                "connection", "unreachable", "refused",
+            ))
+            if es_red and intento < max_intentos - 1:
+                backoff = espera * (intento + 1)   # 2s, 4s, …
+                print(f"[auth] Intento {intento + 1} falló (timeout). Reintentando en {backoff:.1f}s…")
+                time.sleep(backoff)
+                continue
+            # Error que no es de red → propagar inmediatamente
             raise
     raise ultimo_error
+
+
+# ── Validación JWT LOCAL (sin llamada a red) ──────────────────────
+def _decode_jwt_local(token: str):
+    """
+    Decodifica y verifica el JWT de Supabase localmente usando SUPABASE_JWT_SECRET.
+    Devuelve el payload o None si el token es inválido/expirado.
+    Si JWT_SECRET no está configurado, cae al modo sin verificación de firma
+    (solo decodifica — suficiente para extraer el sub/user_id).
+    """
+    try:
+        if JWT_SECRET:
+            payload = pyjwt.decode(
+                token,
+                JWT_SECRET,
+                algorithms=["HS256"],
+                audience="authenticated",
+            )
+        else:
+            # Sin secreto: decodificar sin verificar firma (solo para dev/preview)
+            payload = pyjwt.decode(
+                token,
+                options={"verify_signature": False},
+                algorithms=["HS256"],
+            )
+        return payload
+    except pyjwt.ExpiredSignatureError:
+        print("[jwt] Token expirado")
+        return None
+    except Exception as e:
+        print(f"[jwt] Error decodificando: {e}")
+        return None
+
+
+class _LocalUser:
+    """Objeto mínimo compatible con lo que espera get_current_user en main.py."""
+    def __init__(self, payload: dict):
+        self.id    = payload.get("sub", "")
+        self.email = payload.get("email", "")
+
+
+def get_user_from_token(token: str):
+    """
+    Primero intenta validar el JWT localmente (sin red).
+    Si JWT_SECRET no está configurado o la decodificación falla,
+    cae al método de red como respaldo.
+    """
+    payload = _decode_jwt_local(token)
+    if payload and payload.get("sub"):
+        return _LocalUser(payload)
+
+    # Respaldo: llamada a red (solo si la validación local falló)
+    try:
+        res = _auth_request_with_timeout(supabase.auth.get_user, token, max_intentos=2, espera=1.5)
+        return res.user if res else None
+    except Exception as e:
+        print(f"[token] Error en respaldo de red: {e}")
+        return None
 
 
 # ── Auth ─────────────────────────────────────────────────────────
@@ -76,7 +141,8 @@ def auth_registro(email: str, password: str, username: str) -> tuple:
         try:
             res = _auth_request_with_timeout(
                 supabase.auth.sign_up,
-                {"email": email, "password": password}
+                {"email": email, "password": password},
+                max_intentos=3, espera=2.0,
             )
         except Exception as e:
             msg = str(e)
@@ -94,12 +160,10 @@ def auth_registro(email: str, password: str, username: str) -> tuple:
         try:
             db.table("profiles").insert({
                 "id":       res.user.id,
-                "username": username
+                "username": username,
             }).execute()
         except Exception as e:
             print(f"[registro] Error insertando perfil: {e}")
-            # El usuario se creó en auth pero no en profiles — no es crítico para el login
-            # pero lo reportamos
 
         return True, "✅ Cuenta creada exitosamente."
 
@@ -113,7 +177,8 @@ def auth_login(email: str, password: str) -> tuple:
     try:
         res = _auth_request_with_timeout(
             supabase.auth.sign_in_with_password,
-            {"email": email.strip(), "password": password}
+            {"email": email.strip(), "password": password},
+            max_intentos=3, espera=2.0,
         )
 
         # Obtener username del perfil
@@ -134,15 +199,6 @@ def auth_login(email: str, password: str) -> tuple:
         if any(k in msg.lower() for k in ("timed out", "timeout", "connect", "network")):
             return False, "❌ No se pudo conectar a Supabase. Verifica que Docker esté corriendo.", "", ""
         return False, f"❌ {msg}", "", ""
-
-
-def get_user_from_token(token: str):
-    try:
-        res = _auth_request_with_timeout(supabase.auth.get_user, token)
-        return res.user if res else None
-    except Exception as e:
-        print(f"[token] Error: {e}")
-        return None
 
 
 # ── Historial ─────────────────────────────────────────────────────

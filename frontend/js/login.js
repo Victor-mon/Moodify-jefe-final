@@ -141,51 +141,99 @@ function clearMsg() {
   document.querySelectorAll('.login-msg').forEach(el => { el.textContent = ''; el.className = 'login-msg'; });
 }
 
-// ── Login ─────────────────────────────────────────────────────
+// ── Guard: evita doble submit ─────────────────────────────────
+let _loginPending   = false;
+let _registroPending = false;
+
+// ── Login ─────────────────────────────────────────────────────────
 async function doLogin() {
+  if (_loginPending) return;        // bloquea doble-click
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-pass').value;
   const btn      = document.getElementById('btn-login');
   if (!email || !password) { showMsg('msg-login', '❌ Completa todos los campos.', false); return; }
-  btn.textContent = 'Entrando...'; btn.disabled = true;
+
+  _loginPending = true;
+  btn.textContent = 'Entrando…'; btn.disabled = true;
+  clearMsg();
+
   try {
     const res  = await fetch(`${API}/api/auth/login`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ email, password }),
     });
     const data = await res.json();
-    if (!res.ok) { showMsg('msg-login', data.detail || '❌ Error al iniciar sesión.', false); return; }
-    // Guarda el token y redirige
+
+    if (!res.ok) {
+      showMsg('msg-login', data.detail || '❌ Error al iniciar sesión.', false);
+      return;
+    }
+
+    // Éxito: limpiar campos antes de redirigir
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-pass').value  = '';
+
     localStorage.setItem('moodify_token',    data.token);
     localStorage.setItem('moodify_username', data.username);
     window.location.href = '/app';
+
   } catch (e) {
     showMsg('msg-login', '❌ Error de conexión. ¿Está corriendo el backend?', false);
   } finally {
     btn.textContent = 'Iniciar sesión'; btn.disabled = false;
+    _loginPending = false;
   }
 }
 
 // ── Registro ──────────────────────────────────────────────────
 async function doRegistro() {
+  if (_registroPending) return;     // bloquea doble-click
   const username = document.getElementById('reg-username').value.trim();
   const email    = document.getElementById('reg-email').value.trim();
   const password = document.getElementById('reg-pass').value;
   const btn      = document.getElementById('btn-registro');
-  if (!username || !email || !password) { showMsg('msg-registro', '❌ Completa todos los campos.', false); return; }
-  btn.textContent = 'Creando cuenta...'; btn.disabled = true;
+
+  if (!username || !email || !password) {
+    showMsg('msg-registro', '❌ Completa todos los campos.', false);
+    return;
+  }
+
+  _registroPending = true;
+  btn.textContent = 'Creando cuenta…'; btn.disabled = true;
+  clearMsg();
+
   try {
     const res  = await fetch(`${API}/api/auth/registro`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ email, password, username }),
     });
     const data = await res.json();
-    if (!res.ok) { showMsg('msg-registro', data.detail || '❌ Error.', false); return; }
+
+    if (!res.ok) {
+      showMsg('msg-registro', data.detail || '❌ Error.', false);
+      return;
+    }
+
+    // Éxito: limpiar campos del formulario de registro
+    document.getElementById('reg-username').value = '';
+    document.getElementById('reg-email').value    = '';
+    document.getElementById('reg-pass').value     = '';
+
     showMsg('msg-registro', '✅ Cuenta creada — inicia sesión', true);
-    setTimeout(() => switchTab('login'), 1500);
+
+    // Pre-llenar el email en el login para comodidad
+    setTimeout(() => {
+      switchTab('login');
+      const loginEmail = document.getElementById('login-email');
+      if (loginEmail) loginEmail.value = email;
+    }, 1400);
+
   } catch (e) {
     showMsg('msg-registro', '❌ Error de conexión.', false);
   } finally {
     btn.textContent = 'Crear cuenta'; btn.disabled = false;
+    _registroPending = false;
   }
 }
