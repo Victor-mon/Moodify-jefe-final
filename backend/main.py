@@ -4,6 +4,7 @@ Rutas:
   POST /api/auth/login
   POST /api/auth/registro
   POST /api/auth/logout
+  POST /api/auth/reset-password
   POST /api/transform
   POST /api/translate
   GET  /api/historial
@@ -27,6 +28,7 @@ from auth import (
     auth_login, auth_registro, get_user_from_token,
     guardar_historial, obtener_historial, obtener_favoritos,
     togglear_favorito, obtener_estadisticas,
+    supabase as supabase_client,
 )
 
 load_dotenv()
@@ -37,7 +39,7 @@ agent = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global agent
-    hf_token = os.getenv("HF_TOKEN")
+    hf_token  = os.getenv("HF_TOKEN")
     mock_mode = os.getenv("MOCK_MODE", "false").lower() == "true"
     if hf_token and not mock_mode:
         print("🔄 Cargando modelo LLM...")
@@ -100,6 +102,9 @@ class TranslateRequest(BaseModel):
 class FavoritoRequest(BaseModel):
     estado: bool   # estado ACTUAL (antes del toggle)
 
+class ResetRequest(BaseModel):
+    email: str
+
 
 # ── Rutas: páginas HTML ───────────────────────────────────────
 
@@ -112,6 +117,7 @@ def serve_login():
 def serve_app():
     path = os.path.join(FRONTEND_DIR, "app.html")
     return FileResponse(path)
+
 
 # ── Rutas: auth ───────────────────────────────────────────────
 
@@ -136,9 +142,22 @@ def logout():
     return {"ok": True}
 
 
+@app.post("/api/auth/reset-password")
+def reset_password(body: ResetRequest):
+    """
+    Envía un email de recuperación de contraseña.
+    Siempre responde igual para no revelar si el email existe o no.
+    """
+    try:
+        supabase_client.auth.reset_password_email(body.email.strip().lower())
+    except Exception as e:
+        print(f"[reset] Error: {e}")
+    # Respuesta genérica siempre (no revelar si el email existe)
+    return {"ok": True, "message": "Si existe una cuenta con ese correo, recibirás un enlace."}
+
+
 # ── Rutas: transform / translate ─────────────────────────────
 
-# Respuesta mock para MOCK_MODE
 _MOCK_RESPONSE = {
     "diplomatico": "Le comento que el sistema ha presentado una falla técnica desde las 9am. Agradecería mucho su apoyo para escalar el incidente, ya que tenemos tres equipos sin poder operar.",
     "ejecutivo":   "Sistema caído desde las 9am. Impacto: 3 equipos bloqueados. Se requiere escalar a soporte de inmediato.",
@@ -148,11 +167,13 @@ _MOCK_RESPONSE = {
         "ejec": "Sistema caído desde las 9am. Impacto: 3 equipos bloqueados. Se requiere escalar a soporte de inmediato.",
         "casu": "Oye, el sistema se cayó desde las 9 y llevamos horas sin poder trabajar. ¿Puedes escalarlo a soporte?",
     },
-    "detector":   {"idioma": "Español", "emoji": "🇲🇽", "confianza": 85, "advertencia": ""},
-    "preview":    "The system has been down since 9am. 3 teams are blocked and we need to escalate to support.",
+    "detector":  {"idioma": "Español", "emoji": "🇲🇽", "confianza": 85, "advertencia": ""},
+    "preview":   "The system has been down since 9am. 3 teams are blocked and we need to escalate to support.",
     "tips": [
-        {"icono": "🟡", "titulo": "Hay un poco de tensión aquí",   "texto": "Nombrarlo directamente suele funcionar mucho mejor que insinuarlo."},
-        {"icono": "⏰", "titulo": "Esto va contra el reloj",       "texto": "Asegúrate de que el plazo esté en la primera oración."},
+        {"icono": "🟡", "titulo": "Hay un poco de tensión aquí",
+         "texto": "Nombrarlo directamente suele funcionar mucho mejor que insinuarlo."},
+        {"icono": "⏰", "titulo": "Esto va contra el reloj",
+         "texto": "Asegúrate de que el plazo esté en la primera oración."},
     ],
     "tipo": "reporte", "tono": "frustracion", "intensidad": "media",
 }
@@ -166,16 +187,15 @@ def transform(body: TransformRequest, user=Depends(get_current_user)):
     else:
         result = agent.procesar(body.mensaje)
 
-    # Guarda en historial (incluso en mock)
     guardar_historial(
-        user_id   = user.id,
-        mensaje   = body.mensaje,
-        dipl      = result["diplomatico"],
-        ejec      = result["ejecutivo"],
-        casu      = result["casual"],
-        tipo      = result.get("tipo", "general"),
-        tono      = result.get("tono", "neutro"),
-        intensidad= result.get("intensidad", "baja"),
+        user_id    = user.id,
+        mensaje    = body.mensaje,
+        dipl       = result["diplomatico"],
+        ejec       = result["ejecutivo"],
+        casu       = result["casual"],
+        tipo       = result.get("tipo", "general"),
+        tono       = result.get("tono", "neutro"),
+        intensidad = result.get("intensidad", "baja"),
     )
     return result
 

@@ -1,14 +1,54 @@
+# ═══════════════════════════════════════════════════════════════
+# requirements.txt — Moodify backend
+# Versiones pinadas para garantizar compatibilidad total.
+# Para actualizar: usa el comando de pip-tools al final de este
+# archivo o sigue la guía de actualización segura.
+# ═══════════════════════════════════════════════════════════════
+
+# ── Web framework ─────────────────────────────────────────────
 fastapi==0.111.0
 uvicorn[standard]==0.29.0
 python-multipart==0.0.9
 pydantic==2.7.1
-supabase==2.4.0
-python-dotenv==1.0.1
 
-# ===== LLM (desactivado por ahora) =====
+# ── Utilidades ────────────────────────────────────────────────
+python-dotenv==1.0.1
+PyJWT==2.8.0
+
+# ── Supabase + dependencias internas EXACTAS ──────────────────
+# httpx 0.27.x es requerido: gotrue 2.x usa el arg 'proxy' que
+# desapareció en httpx 0.28+. No subas httpx sin probar gotrue.
+supabase==2.4.0
+gotrue==2.4.1
+httpx==0.27.2
+storage3==0.7.3
+postgrest==0.16.8
+realtime==2.0.2
+
+# ── LLM (descomenta cuando tengas GPU disponible) ─────────────
 # torch==2.2.2
 # transformers==4.40.2
 # accelerate==0.29.3
 # bitsandbytes==0.43.1
 # sentencepiece==0.2.0
 # protobuf==4.25.3
+
+# ═══════════════════════════════════════════════════════════════
+# GUÍA DE ACTUALIZACIÓN SEGURA (leer antes de hacer pip install)
+# ═══════════════════════════════════════════════════════════════
+#
+# 1. Para ver qué hay desactualizado sin cambiar nada:
+#       pip list --outdated
+#
+# 2. Para actualizar SOLO supabase y sus deps de forma segura:
+#       pip install pip-tools
+#       pip-compile requirements.in --upgrade-package supabase
+#    (crea requirements.in con solo los paquetes "raíz" sin versión)
+#
+# 3. Regla de httpx/gotrue: SIEMPRE consulta el CHANGELOG de gotrue
+#    en https://github.com/supabase/gotrue-py antes de subir httpx.
+#
+# 4. Después de cualquier cambio, prueba con:
+#       uvicorn main:app --port 8001
+#    y verifica que /api/auth/login responda correctamente.
+# ═══════════════════════════════════════════════════════════════

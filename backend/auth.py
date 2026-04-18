@@ -1,6 +1,6 @@
 import os
+import re
 import time
-import httpx
 import jwt as pyjwt
 from supabase import create_client, Client
 from supabase.client import ClientOptions
@@ -11,11 +11,10 @@ load_dotenv()
 SUPABASE_URL     = os.getenv("SUPABASE_URL")
 SUPABASE_KEY     = os.getenv("SUPABASE_ANON_KEY")
 SUPABASE_SERVICE = os.getenv("SUPABASE_SERVICE_KEY")
-JWT_SECRET       = os.getenv("SUPABASE_JWT_SECRET", "")   # ← agrega esto a tu .env
+JWT_SECRET       = os.getenv("SUPABASE_JWT_SECRET", "")
 MINIMO_STATS     = 10
 
-# ── Clientes con timeouts mayores ────────────────────────────────
-# postgrest_client_timeout=60 da margen suficiente en Windows/Docker
+# ── Clientes Supabase ─────────────────────────────────────────────
 supabase: Client = create_client(
     SUPABASE_URL, SUPABASE_KEY,
     options=ClientOptions(
@@ -51,11 +50,10 @@ def _auth_request_with_timeout(fn, *args, max_intentos=3, espera=2.0, **kwargs):
                 "connection", "unreachable", "refused",
             ))
             if es_red and intento < max_intentos - 1:
-                backoff = espera * (intento + 1)   # 2s, 4s, …
+                backoff = espera * (intento + 1)
                 print(f"[auth] Intento {intento + 1} falló (timeout). Reintentando en {backoff:.1f}s…")
                 time.sleep(backoff)
                 continue
-            # Error que no es de red → propagar inmediatamente
             raise
     raise ultimo_error
 
@@ -63,10 +61,9 @@ def _auth_request_with_timeout(fn, *args, max_intentos=3, espera=2.0, **kwargs):
 # ── Validación JWT LOCAL (sin llamada a red) ──────────────────────
 def _decode_jwt_local(token: str):
     """
-    Decodifica y verifica el JWT de Supabase localmente usando SUPABASE_JWT_SECRET.
-    Devuelve el payload o None si el token es inválido/expirado.
-    Si JWT_SECRET no está configurado, cae al modo sin verificación de firma
-    (solo decodifica — suficiente para extraer el sub/user_id).
+    Decodifica y verifica el JWT de Supabase localmente.
+    Si JWT_SECRET no está configurado, decodifica sin verificar firma
+    (suficiente para dev/preview con MOCK_MODE).
     """
     try:
         if JWT_SECRET:
@@ -77,7 +74,6 @@ def _decode_jwt_local(token: str):
                 audience="authenticated",
             )
         else:
-            # Sin secreto: decodificar sin verificar firma (solo para dev/preview)
             payload = pyjwt.decode(
                 token,
                 options={"verify_signature": False},
@@ -93,7 +89,7 @@ def _decode_jwt_local(token: str):
 
 
 class _LocalUser:
-    """Objeto mínimo compatible con lo que espera get_current_user en main.py."""
+    """Objeto mínimo compatible con get_current_user en main.py."""
     def __init__(self, payload: dict):
         self.id    = payload.get("sub", "")
         self.email = payload.get("email", "")
@@ -101,15 +97,13 @@ class _LocalUser:
 
 def get_user_from_token(token: str):
     """
-    Primero intenta validar el JWT localmente (sin red).
-    Si JWT_SECRET no está configurado o la decodificación falla,
-    cae al método de red como respaldo.
+    Valida el JWT primero localmente (sin red).
+    Si falla, usa llamada a red como respaldo.
     """
     payload = _decode_jwt_local(token)
     if payload and payload.get("sub"):
         return _LocalUser(payload)
 
-    # Respaldo: llamada a red (solo si la validación local falló)
     try:
         res = _auth_request_with_timeout(supabase.auth.get_user, token, max_intentos=2, espera=1.5)
         return res.user if res else None
@@ -120,24 +114,41 @@ def get_user_from_token(token: str):
 
 # ── Auth ─────────────────────────────────────────────────────────
 
+def _validar_username(username: str) -> tuple[bool, str]:
+    """Valida formato del username: solo letras, números y guion bajo."""
+    username = username.strip().lower()
+    if len(username) < 3:
+        return False, "❌ El username debe tener al menos 3 caracteres."
+    if len(username) > 30:
+        return False, "❌ El username no puede superar 30 caracteres."
+    if not re.match(r'^[a-z0-9_]+$', username):
+        return False, "❌ El username solo puede contener letras, números y guion bajo (_)."
+    return True, username
+
+
 def auth_registro(email: str, password: str, username: str) -> tuple:
     try:
+        # ── 1. Validaciones locales ───────────────────────────────
         if len(password) < 6:
             return False, "❌ La contraseña debe tener al menos 6 caracteres."
-        if len(username.strip()) < 3:
-            return False, "❌ El nombre de usuario debe tener al menos 3 caracteres."
-        username = username.strip().lower()
 
-        # Verificar username duplicado
+        ok, resultado = _validar_username(username)
+        if not ok:
+            return False, resultado
+        username = resultado  # resultado es el username normalizado
+        email    = email.strip().lower()
+
+        # ── 2. Verificar username duplicado (SELECT previo) ───────
         try:
             existing = db.table("profiles").select("id").eq("username", username).execute()
             if existing.data:
                 return False, "❌ Ese nombre de usuario ya está en uso."
         except Exception as e:
             print(f"[registro] Error verificando username: {e}")
-            return False, "❌ Error de conexión con la base de datos. ¿Está Docker corriendo?"
+            return False, "❌ Error de conexión con la base de datos."
 
-        # Crear usuario en Supabase Auth
+        # ── 3. Crear usuario en Supabase Auth ─────────────────────
+        # Supabase rechaza emails duplicados automáticamente.
         try:
             res = _auth_request_with_timeout(
                 supabase.auth.sign_up,
@@ -146,44 +157,55 @@ def auth_registro(email: str, password: str, username: str) -> tuple:
             )
         except Exception as e:
             msg = str(e)
-            print(f"[registro] Error en sign_up: {msg}")
-            if "already registered" in msg:
-                return False, "❌ Este correo ya está registrado."
+            if "already registered" in msg or "User already registered" in msg:
+                return False, "❌ Este correo ya está registrado. ¿Olvidaste tu contraseña?"
             if any(k in msg.lower() for k in ("timed out", "timeout", "connect")):
-                return False, "❌ No se pudo conectar a Supabase. Verifica que Docker esté corriendo."
+                return False, "❌ No se pudo conectar a Supabase."
             return False, f"❌ {msg}"
 
         if not res.user:
             return False, "❌ No se pudo crear la cuenta."
 
-        # Insertar perfil
+        # ── 4. Insertar perfil en tabla profiles ──────────────────
+        # El UNIQUE constraint en Supabase actúa como segunda guarda
+        # en caso de race condition entre el SELECT y este INSERT.
         try:
             db.table("profiles").insert({
                 "id":       res.user.id,
                 "username": username,
+                "email":    email,
             }).execute()
         except Exception as e:
+            err = str(e).lower()
+            if "unique" in err or "duplicate" in err:
+                # Race condition: otro usuario tomó el username en el intervalo.
+                # Limpiamos el usuario recién creado en Auth para no dejar huérfanos.
+                try:
+                    db.auth.admin.delete_user(res.user.id)
+                except Exception as del_e:
+                    print(f"[registro] No se pudo limpiar usuario huérfano: {del_e}")
+                return False, "❌ Ese nombre de usuario ya está en uso (intenta con otro)."
             print(f"[registro] Error insertando perfil: {e}")
+            # El usuario Auth fue creado pero no tiene perfil.
+            # No es crítico — puede funcionar igual con username derivado del email.
 
         return True, "✅ Cuenta creada exitosamente."
 
     except Exception as e:
-        msg = str(e)
-        print(f"[registro] Error inesperado: {msg}")
-        return False, f"❌ {msg}"
+        print(f"[registro] Error inesperado: {e}")
+        return False, f"❌ {str(e)}"
 
 
 def auth_login(email: str, password: str) -> tuple:
     try:
         res = _auth_request_with_timeout(
             supabase.auth.sign_in_with_password,
-            {"email": email.strip(), "password": password},
+            {"email": email.strip().lower(), "password": password},
             max_intentos=3, espera=2.0,
         )
 
-        # Obtener username del perfil
         try:
-            profile = db.table("profiles").select("username").eq("id", res.user.id).execute()
+            profile  = db.table("profiles").select("username").eq("id", res.user.id).execute()
             username = profile.data[0]["username"] if profile.data else res.user.email.split("@")[0]
         except Exception:
             username = res.user.email.split("@")[0]
@@ -197,7 +219,7 @@ def auth_login(email: str, password: str) -> tuple:
         if "Invalid login credentials" in msg:
             return False, "❌ Correo o contraseña incorrectos.", "", ""
         if any(k in msg.lower() for k in ("timed out", "timeout", "connect", "network")):
-            return False, "❌ No se pudo conectar a Supabase. Verifica que Docker esté corriendo.", "", ""
+            return False, "❌ No se pudo conectar a Supabase. Verifica tu conexión.", "", ""
         return False, f"❌ {msg}", "", ""
 
 
