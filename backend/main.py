@@ -5,6 +5,7 @@ Rutas:
   POST /api/auth/registro
   POST /api/auth/logout
   POST /api/auth/reset-password
+  GET  /api/perfil
   POST /api/transform
   POST /api/translate
   GET  /api/historial
@@ -29,6 +30,7 @@ from auth import (
     guardar_historial, obtener_historial, obtener_favoritos,
     togglear_favorito, obtener_estadisticas,
     supabase as supabase_client,
+    db,
 )
 
 load_dotenv()
@@ -152,8 +154,21 @@ def reset_password(body: ResetRequest):
         supabase_client.auth.reset_password_email(body.email.strip().lower())
     except Exception as e:
         print(f"[reset] Error: {e}")
-    # Respuesta genérica siempre (no revelar si el email existe)
     return {"ok": True, "message": "Si existe una cuenta con ese correo, recibirás un enlace."}
+
+
+# ── Ruta: perfil (username del usuario autenticado) ───────────
+
+@app.get("/api/perfil")
+def perfil(user=Depends(get_current_user)):
+    """Devuelve el username del usuario autenticado desde la tabla profiles."""
+    try:
+        profile = db.table("profiles").select("username").eq("id", user.id).execute()
+        username = profile.data[0]["username"] if profile.data else user.email.split("@")[0]
+    except Exception as e:
+        print(f"[perfil] Error: {e}")
+        username = user.email.split("@")[0] if hasattr(user, "email") else "usuario"
+    return {"username": username}
 
 
 # ── Rutas: transform / translate ─────────────────────────────

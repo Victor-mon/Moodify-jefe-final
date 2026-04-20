@@ -5,7 +5,7 @@ const MINIMO_STATS = 10;
 
 // ── Estado global ─────────────────────────────────────────────
 let token      = localStorage.getItem('moodify_token')    || '';
-let username   = localStorage.getItem('moodify_username') || 'usuario';
+let username   = localStorage.getItem('moodify_username') || '';
 let textos_es  = {};
 let idioma     = 'es';
 let loadTimer  = null;
@@ -17,7 +17,19 @@ if (!token) { window.location.href = '/'; }
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('nav-username').textContent = `@${username}`;
+  // Mostrar username; si por alguna razón está vacío, intentar obtenerlo del backend
+  if (username) {
+    document.getElementById('nav-username').textContent = `@${username}`;
+  } else {
+    // Fallback: obtener el perfil desde el backend
+    apiGet('/api/perfil').then(data => {
+      if (data && data.username) {
+        username = data.username;
+        localStorage.setItem('moodify_username', username);
+        document.getElementById('nav-username').textContent = `@${username}`;
+      }
+    }).catch(() => {});
+  }
   checkStatsTab();
 });
 
@@ -168,7 +180,6 @@ async function doTransform() {
     renderOutputs(data);
     renderDetector(data);
     renderTips(data.tips || []);
-    // resetea selector de idioma
     selectLang('es');
     checkStatsTab();
   } catch (e) {
