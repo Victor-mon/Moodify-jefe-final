@@ -68,6 +68,7 @@ FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(FRONTEND_DIR):
     app.mount("/css", StaticFiles(directory=os.path.join(FRONTEND_DIR, "css")), name="css")
     app.mount("/js",  StaticFiles(directory=os.path.join(FRONTEND_DIR, "js")),  name="js")
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
 # ── Helpers ───────────────────────────────────────────────────
