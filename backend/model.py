@@ -1,14 +1,15 @@
 """
 model.py — MessageToneAgent
-Cuantización NF4 corregida para mantenerse bajo ~4.5 GB de VRAM.
+Configuración para CPU + GPU Intel Iris Xe (sin CUDA, sin bitsandbytes).
 
-Problemas que causaban el consumo de ~7 GB en Colab:
-1. bfloat16 en compute_dtype sube el consumo vs float16.
-2. Sin bnb_4bit_use_double_quant=True se pierde ~0.5 GB.
-3. device_map="auto" con un solo GPU a veces carga algunas capas en fp32.
-4. El tokenizer cargaba tensores en CPU y luego los movía, duplicando picos.
-5. max_new_tokens muy altos reservan memoria KV-cache innecesaria.
-Correcciones aplicadas abajo.
+Estrategia:
+- Se carga el modelo en float32 / bfloat16 usando device_map="auto"
+  para que accelerate reparta capas entre RAM y la memoria compartida
+  de la GPU Intel automáticamente.
+- Se usa torch.bfloat16 porque Intel Iris Xe soporta bfloat16 nativo
+  vía PyTorch CPU/XPU, lo que reduce el consumo de RAM a ~8 GB.
+- Sin cuantización NF4 (requiere CUDA/NVIDIA).
+- Se habilita torch.compile() si está disponible para acelerar inferencia.
 """
 
 import os
@@ -17,7 +18,6 @@ import torch
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
-    BitsAndBytesConfig,
 )
 from processing import (
     GateKeeper, DetectorIdioma, AsesorEmocional,
@@ -26,29 +26,39 @@ from processing import (
 )
 
 
-def _build_bnb_config() -> BitsAndBytesConfig:
+def _get_dtype_and_device():
     """
-    Configuración BitsAndBytes optimizada para < 4.5 GB VRAM.
+    Determina el dtype y device_map óptimos según el hardware disponible.
 
-    Cambios clave vs la versión original de Colab:
-    - compute_dtype = float16   (bfloat16 usa más VRAM en Ampere y anterior)
-    - double_quant  = True      (cuantiza también las constantes de escala: -~0.4 GB)
-    - quant_type    = "nf4"     (sin cambio, ya era correcto)
+    - Si hay GPU NVIDIA (CUDA): float16 + device_map auto
+    - Si hay GPU Intel (XPU):   bfloat16 + device_map auto
+    - CPU pura:                 bfloat16 (más rápido que float32 en CPUs modernas)
     """
-    return BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.float16,      # ← float16, no bfloat16
-        bnb_4bit_use_double_quant=True,            # ← reduce ~0.4 GB extra
-    )
+    if torch.cuda.is_available():
+        print("🟢 CUDA detectado — usando float16 en GPU NVIDIA")
+        return torch.float16, "auto"
+
+    # Intel XPU (Arc, Iris Xe) vía torch-xpu o ipex
+    try:
+        import intel_extension_for_pytorch as ipex  # noqa: F401
+        if hasattr(torch, "xpu") and torch.xpu.is_available():
+            print("🔵 Intel XPU detectado — usando bfloat16 + IPEX")
+            return torch.bfloat16, "xpu"
+    except ImportError:
+        pass
+
+    # CPU con bfloat16 (Intel Core 12th gen+ lo soporta nativamente)
+    print("⚪ Sin GPU dedicada — usando CPU con bfloat16 + device_map auto")
+    return torch.bfloat16, "auto"
 
 
 class MessageToneAgent:
     MODEL_ID = "google/gemma-3-4b-it"
 
     def __init__(self):
+        self.dtype, device_map = _get_dtype_and_device()
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        print(f"🚀 Moodify | Dispositivo: {self.device}")
+        print(f"🚀 Moodify | dtype: {self.dtype} | device_map: {device_map}")
 
         hf_token = os.getenv("HF_TOKEN")
         if not hf_token:
@@ -64,41 +74,60 @@ class MessageToneAgent:
         if self.tokenizer.pad_token_id is None:
             self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
-        # ── Modelo con cuantización corregida ────────────────
-        print("📦 Cargando modelo con cuantización NF4 optimizada...")
-        bnb = _build_bnb_config()
+        # ── Modelo sin cuantización ──────────────────────────
+        # device_map="auto" reparte capas entre CPU y cualquier
+        # acelerador disponible (GPU Intel via shared memory).
+        print("📦 Cargando modelo en bfloat16 (sin cuantización)...")
+        print("   Esto puede tardar 2-5 minutos la primera vez...")
 
-        # device_map="cuda:0" fuerza todo a la misma GPU y evita que
-        # transformers reparta capas entre GPU+CPU (lo que infla el uso).
-        # Si no hay GPU usa device_map="auto" normalmente.
-        device_map = {"": 0} if self.device == "cuda" else "auto"
+        load_kwargs = dict(
+            token=hf_token,
+            torch_dtype=self.dtype,
+            low_cpu_mem_usage=True,   # carga capa por capa, evita pico de RAM doble
+        )
 
-        try:
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.MODEL_ID,
-                quantization_config=bnb,
-                device_map=device_map,
-                token=hf_token,
-                attn_implementation="flash_attention_2",
-                torch_dtype=torch.float16,            # ← consistente con compute_dtype
-            ).eval()
-        except Exception:
-            # Fallback sin flash attention (GPUs antiguas)
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.MODEL_ID,
-                quantization_config=bnb,
-                device_map=device_map,
-                token=hf_token,
-                torch_dtype=torch.float16,
-            ).eval()
+        # device_map="auto" usa accelerate para repartir capas
+        # entre CPU RAM y GPU shared memory automáticamente.
+        # Si tienes 31 GB de RAM puedes cargar todo el modelo (~8 GB en bf16).
+        if device_map == "auto":
+            load_kwargs["device_map"] = "auto"
+        elif device_map == "xpu":
+            # Intel XPU: cargar en CPU primero, mover a XPU
+            load_kwargs["device_map"] = "cpu"
 
-        # Libera la caché CUDA después de cargar
-        if self.device == "cuda":
-            torch.cuda.empty_cache()
-            vram_gb = torch.cuda.memory_allocated() / 1024 ** 3
-            print(f"✅ Modelo listo | VRAM usada: {vram_gb:.2f} GB")
-        else:
-            print("✅ Modelo listo (CPU)")
+        self.model = AutoModelForCausalLM.from_pretrained(
+            self.MODEL_ID,
+            **load_kwargs,
+        ).eval()
+
+        # Mover a XPU si está disponible
+        if device_map == "xpu":
+            try:
+                import intel_extension_for_pytorch as ipex
+                self.model = ipex.optimize(self.model, dtype=self.dtype)
+                self.model = self.model.to("xpu")
+                self.device = "xpu"
+                print("✅ Modelo movido a Intel XPU")
+            except Exception as e:
+                print(f"⚠️  No se pudo mover a XPU: {e} — usando CPU")
+                self.device = "cpu"
+
+        # torch.compile acelera ~20-40% en CPU Intel (requiere PyTorch 2.0+)
+        if self.device == "cpu":
+            try:
+                print("⚡ Aplicando torch.compile para acelerar CPU...")
+                self.model = torch.compile(
+                    self.model,
+                    mode="reduce-overhead",   # balance entre compilación y velocidad
+                    backend="inductor",
+                )
+                print("✅ torch.compile aplicado")
+            except Exception as e:
+                print(f"⚠️  torch.compile no disponible: {e}")
+
+        # Reporte de memoria
+        ram_gb = torch.cuda.memory_allocated() / 1024**3 if torch.cuda.is_available() else 0
+        print(f"✅ Modelo listo | RAM GPU: {ram_gb:.2f} GB (resto en RAM del sistema)")
 
         # ── Clases de procesamiento ───────────────────────────
         self.gate      = GateKeeper()
@@ -110,24 +139,35 @@ class MessageToneAgent:
 
     # ── Generación interna ────────────────────────────────────
 
+    def _get_model_device(self):
+        """Obtiene el device real donde está el primer parámetro del modelo."""
+        try:
+            return next(self.model.parameters()).device
+        except Exception:
+            return torch.device(self.device)
+
     def _generar(self, prompt: str, n_palabras: int, temperatura=0.22, lon_clase="medio") -> str:
         if lon_clase == "muy_corto":
             temperatura = min(temperatura, 0.18)
 
-        chat = [{"role": "user", "content": prompt}]
-        tp   = self.tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
+        chat    = [{"role": "user", "content": prompt}]
+        tp      = self.tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
         encoded = self.tokenizer(tp, return_tensors="pt", truncation=True, max_length=1024)
-        inputs  = {k: v.to(self.model.device) for k, v in encoded.items() if k in ("input_ids", "attention_mask")}
 
-        # max_new_tokens acotados: el KV-cache reserva memoria proporcional
+        # Mover inputs al device correcto
+        model_device = self._get_model_device()
+        inputs = {k: v.to(model_device) for k, v in encoded.items()
+                  if k in ("input_ids", "attention_mask")}
+
+        # Límites de tokens conservadores para no saturar RAM
         if lon_clase == "muy_corto":
             max_tok = min(50,  max(15,  int(n_palabras * 2.0)))
         elif lon_clase == "corto":
             max_tok = min(110, max(35,  int(n_palabras * 2.2)))
         else:
-            max_tok = min(240, max(80,  int(n_palabras * 2.2)))   # ← bajado de 280 a 240
+            max_tok = min(220, max(80,  int(n_palabras * 2.0)))
 
-        with torch.inference_mode():                               # ← inference_mode en lugar de no_grad (más eficiente)
+        with torch.inference_mode():
             out = self.model.generate(
                 **inputs,
                 max_new_tokens=max_tok,
@@ -153,6 +193,8 @@ class MessageToneAgent:
     def traducir(self, textos_es: dict, idioma_destino: str) -> tuple:
         if idioma_destino == "es":
             return textos_es.get("dipl", ""), textos_es.get("ejec", ""), textos_es.get("casu", "")
+
+        model_device = self._get_model_device()
         traducciones = []
         for nombre_tono, texto in [("diplomatic", textos_es.get("dipl", "")),
                                     ("executive",  textos_es.get("ejec", "")),
@@ -168,7 +210,8 @@ class MessageToneAgent:
             chat    = [{"role": "user", "content": prompt}]
             tp      = self.tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
             encoded = self.tokenizer(tp, return_tensors="pt", truncation=True, max_length=1024)
-            inputs  = {k: v.to(self.model.device) for k, v in encoded.items() if k in ("input_ids", "attention_mask")}
+            inputs  = {k: v.to(model_device) for k, v in encoded.items()
+                       if k in ("input_ids", "attention_mask")}
             with torch.inference_mode():
                 out = self.model.generate(
                     **inputs, max_new_tokens=max_tok, temperature=0.15,
@@ -189,13 +232,15 @@ class MessageToneAgent:
         return tuple(traducciones)
 
     def _traducir_preview(self, mensaje: str, idioma_origen: str) -> str:
+        model_device = self._get_model_device()
         prompt = ("Translate this workplace message from Spanish to English. Keep it natural. Output ONLY the translation:\n\n" + mensaje
                   if idioma_origen == "es"
                   else "Traduce este mensaje del inglés al español. Natural y profesional. ÚNICAMENTE la traducción:\n\n" + mensaje)
         chat    = [{"role": "user", "content": prompt}]
         tp      = self.tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
         encoded = self.tokenizer(tp, return_tensors="pt", truncation=True, max_length=512)
-        inputs  = {k: v.to(self.model.device) for k, v in encoded.items() if k in ("input_ids", "attention_mask")}
+        inputs  = {k: v.to(model_device) for k, v in encoded.items()
+                   if k in ("input_ids", "attention_mask")}
         max_tok = min(100, max(20, int(len(mensaje.split()) * 1.6)))
         with torch.inference_mode():
             out = self.model.generate(
@@ -250,10 +295,6 @@ class MessageToneAgent:
                 raw    = self._generar(prompt, ctx["palabras"], temperatura=0.28, lon_clase=pre["longitud_clase"])
                 limpio = OutputCleaner().limpiar(raw, tono, ctx["tiene_emojis"])
             resultados[tono] = limpio or "No se pudo generar. Intenta con un mensaje más detallado."
-
-        # Libera caché entre requests
-        if self.device == "cuda":
-            torch.cuda.empty_cache()
 
         return {
             "diplomatico": resultados["diplomatico"],

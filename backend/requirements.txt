@@ -1,8 +1,6 @@
 # ═══════════════════════════════════════════════════════════════
 # requirements.txt — Moodify backend
-# Versiones pinadas para garantizar compatibilidad total.
-# Para actualizar: usa el comando de pip-tools al final de este
-# archivo o sigue la guía de actualización segura.
+# Configurado para CPU + GPU Intel Iris Xe (sin CUDA, sin bitsandbytes)
 # ═══════════════════════════════════════════════════════════════
 
 # ── Web framework ─────────────────────────────────────────────
@@ -15,37 +13,29 @@ python-dotenv==1.0.1
 PyJWT==2.8.0
 
 # ── Supabase + dependencias internas EXACTAS ──────────────────
-# httpx 0.27.x es requerido: gotrue 2.x usa el arg 'proxy' que
-# desapareció en httpx 0.28+. No subas httpx sin probar gotrue.
 supabase
 gotrue==2.9.3
 httpx==0.27.2
 postgrest==0.17.1
 
-# ── LLM (descomenta cuando tengas GPU disponible) ─────────────
- torch==2.2.2
- transformers==4.40.2
- accelerate==0.29.3
- bitsandbytes==0.43.1
- sentencepiece==0.2.0
- protobuf==4.25.3
+# ── LLM — CPU + GPU Intel (sin CUDA, sin bitsandbytes) ────────
+# torch CPU: funciona con Intel Iris Xe vía memoria compartida
+torch==2.2.2
+torchvision==0.17.2
 
-# ═══════════════════════════════════════════════════════════════
-# GUÍA DE ACTUALIZACIÓN SEGURA (leer antes de hacer pip install)
-# ═══════════════════════════════════════════════════════════════
-#
-# 1. Para ver qué hay desactualizado sin cambiar nada:
-#       pip list --outdated
-#
-# 2. Para actualizar SOLO supabase y sus deps de forma segura:
-#       pip install pip-tools
-#       pip-compile requirements.in --upgrade-package supabase
-#    (crea requirements.in con solo los paquetes "raíz" sin versión)
-#
-# 3. Regla de httpx/gotrue: SIEMPRE consulta el CHANGELOG de gotrue
-#    en https://github.com/supabase/gotrue-py antes de subir httpx.
-#
-# 4. Después de cualquier cambio, prueba con:
-#       uvicorn main:app --port 8001
-#    y verifica que /api/auth/login responda correctamente.
-# ═══════════════════════════════════════════════════════════════
+# transformers y accelerate: reparto automático de capas CPU/GPU
+transformers==4.40.2
+accelerate==0.29.3
+
+# sentencepiece y protobuf: requeridos por Gemma tokenizer
+sentencepiece==0.2.0
+protobuf==4.25.3
+
+# ── OPCIONAL: Intel Extension for PyTorch ─────────────────────
+# Descomenta si quieres usar XPU (Intel Arc/Iris Xe) directamente.
+# Requiere instalar manualmente: pip install intel-extension-for-pytorch
+# intel-extension-for-pytorch
+
+# ── NO incluidos (requieren NVIDIA/CUDA) ──────────────────────
+# bitsandbytes  ← SOLO NVIDIA, no compatible con Intel
+# flash-attn    ← SOLO NVIDIA

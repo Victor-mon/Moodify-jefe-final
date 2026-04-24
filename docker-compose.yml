@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
 
+  # ── Modo preview (sin LLM, respuestas mock) ─────────────────
   moodify-preview:
     profiles: ["preview"]
     build:
@@ -18,6 +19,10 @@ services:
       - ./frontend:/app/frontend
     restart: unless-stopped
 
+  # ── Modo producción con LLM en CPU + Intel Iris Xe ──────────
+  # Sin bloque "deploy.resources" — no requiere NVIDIA.
+  # El modelo corre en CPU con bfloat16 (~8 GB RAM).
+  # accelerate reparte capas automáticamente si hay memoria GPU disponible.
   moodify:
     profiles: ["prod"]
     build:
@@ -29,15 +34,19 @@ services:
       - .env
     environment:
       - MOCK_MODE=false
+      # Permite que PyTorch use todos los cores disponibles
+      - OMP_NUM_THREADS=8
+      - MKL_NUM_THREADS=8
+      # Optimización de memoria para modelos grandes en CPU
+      - PYTORCH_NO_CUDA_MEMORY_CACHING=1
     volumes:
+      # Cache de HuggingFace: evita re-descargar el modelo (~9 GB) en cada build
       - hf-cache:/root/.cache/huggingface
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+    # Sin restricción de GPU — usa CPU + memoria compartida Intel
+    # deploy.resources eliminado intencionalmente
+    shm_size: "2gb"          # shared memory para PyTorch DataLoader
+    mem_limit: "22g"         # límite de RAM para el contenedor (deja margen al sistema)
+    memswap_limit: "24g"     # permite usar un poco de swap si es necesario
     restart: unless-stopped
 
 volumes:
