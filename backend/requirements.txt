@@ -12,11 +12,10 @@ postgrest==0.17.1
 
 numpy<2
 
-torch==2.2.2
-torchvision==0.17.2
-
-transformers==4.40.2
-accelerate==0.29.3
-
-sentencepiece==0.2.0
-protobuf==4.25.3
+# Dejamos que pip elija las versiones más recientes y compatibles
+torch
+torchvision
+transformers
+accelerate
+sentencepiece
+protobuf
