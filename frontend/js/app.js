@@ -1,6 +1,6 @@
 /* app.js — Lógica principal de Moodify */
 
-const API = "http://localhost:8001";
+const API = "http://localhost:8000";
 const MINIMO_STATS = 10;
 
 /* ── SISTEMA DE INTERNACIONALIZACIÓN ─────────────────────────── */

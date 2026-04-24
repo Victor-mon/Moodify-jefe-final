@@ -1,6 +1,6 @@
 /* login.js — Auth + ciclo emocional del fondo */
 
-const API = "http://localhost:8001";
+const API = "http://localhost:8000";
 
 // ── Ciclo emocional ──────────────────────────────────────────
 const EMOCIONES = [

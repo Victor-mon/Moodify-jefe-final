@@ -20,6 +20,7 @@ supabase: Client = create_client(
     options=ClientOptions(
         postgrest_client_timeout=60,
         storage_client_timeout=60,
+        headers={"ngrok-skip-browser-warning": "true"}
     )
 )
 
@@ -28,6 +29,7 @@ db: Client = create_client(
     options=ClientOptions(
         postgrest_client_timeout=60,
         storage_client_timeout=60,
+        headers={"ngrok-skip-browser-warning": "true"}
     )
 )
 
