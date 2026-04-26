@@ -4,32 +4,32 @@ const API = "http://localhost:8000";
 
 // ── Ciclo emocional ──────────────────────────────────────────
 const EMOCIONES = [
-  { name:"— calma",      ify:"#7dc86a", ifySh:"0 0 18px rgba(125,200,106,0.65)",
+  { name:"calma",      ify:"#7dc86a", ifySh:"0 0 18px rgba(125,200,106,0.65)",
     bgA:"radial-gradient(ellipse at 20% 55%,rgba(20,90,40,0.55) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(10,60,80,0.4) 0%,transparent 45%),#060d09",
     tabBg:"rgba(15,40,15,0.85)",tabBd:"rgba(80,200,120,0.3)",tabSh:"0 0 18px rgba(80,200,120,0.2),0 0 1px rgba(120,220,100,0.35) inset",tabC:"#a8e890",
     btnBd:"rgba(80,200,120,0.3)",btnSh:"0 0 22px rgba(80,200,120,0.18),0 0 1px rgba(120,220,100,0.3) inset",btnC:"#b0e898",
     dotBg:"#7dc86a",dotSh:"0 0 6px rgba(125,200,106,0.6)",div:"linear-gradient(to bottom,transparent,rgba(80,200,120,0.2),transparent)" },
-  { name:"— frustración",ify:"#ff6b5b", ifySh:"0 0 18px rgba(255,107,91,0.65)",
+  { name:"frustración",ify:"#ff6b5b", ifySh:"0 0 18px rgba(255,107,91,0.65)",
     bgA:"radial-gradient(ellipse at 25% 50%,rgba(140,30,20,0.55) 0%,transparent 48%),radial-gradient(ellipse at 75% 25%,rgba(100,20,10,0.45) 0%,transparent 42%),#0d0605",
     tabBg:"rgba(40,10,8,0.85)",tabBd:"rgba(220,80,60,0.35)",tabSh:"0 0 18px rgba(220,80,60,0.22),0 0 1px rgba(255,100,80,0.4) inset",tabC:"#ffaa98",
     btnBd:"rgba(220,80,60,0.35)",btnSh:"0 0 22px rgba(220,80,60,0.2),0 0 1px rgba(255,100,80,0.35) inset",btnC:"#ffb8a8",
     dotBg:"#ff6b5b",dotSh:"0 0 6px rgba(255,107,91,0.6)",div:"linear-gradient(to bottom,transparent,rgba(220,80,60,0.2),transparent)" },
-  { name:"— paz",        ify:"#6ab4ff", ifySh:"0 0 18px rgba(106,180,255,0.65)",
+  { name:"paz",        ify:"#6ab4ff", ifySh:"0 0 18px rgba(106,180,255,0.65)",
     bgA:"radial-gradient(ellipse at 15% 55%,rgba(20,60,140,0.5) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(10,40,100,0.45) 0%,transparent 42%),#060810",
     tabBg:"rgba(10,20,45,0.85)",tabBd:"rgba(80,150,255,0.3)",tabSh:"0 0 18px rgba(80,150,255,0.2),0 0 1px rgba(120,180,255,0.35) inset",tabC:"#a8ccff",
     btnBd:"rgba(80,150,255,0.3)",btnSh:"0 0 22px rgba(80,150,255,0.18),0 0 1px rgba(120,180,255,0.3) inset",btnC:"#b0d4ff",
     dotBg:"#6ab4ff",dotSh:"0 0 6px rgba(106,180,255,0.6)",div:"linear-gradient(to bottom,transparent,rgba(80,150,255,0.2),transparent)" },
-  { name:"— urgencia",   ify:"#ffb830", ifySh:"0 0 18px rgba(255,184,48,0.65)",
+  { name:"urgencia",   ify:"#ffb830", ifySh:"0 0 18px rgba(255,184,48,0.65)",
     bgA:"radial-gradient(ellipse at 20% 50%,rgba(120,70,10,0.55) 0%,transparent 48%),radial-gradient(ellipse at 78% 22%,rgba(90,50,5,0.45) 0%,transparent 42%),#0d0a04",
     tabBg:"rgba(35,22,5,0.85)",tabBd:"rgba(220,160,40,0.32)",tabSh:"0 0 18px rgba(220,160,40,0.2),0 0 1px rgba(255,190,60,0.35) inset",tabC:"#ffd888",
     btnBd:"rgba(220,160,40,0.32)",btnSh:"0 0 22px rgba(220,160,40,0.18),0 0 1px rgba(255,190,60,0.3) inset",btnC:"#ffe0a0",
     dotBg:"#ffb830",dotSh:"0 0 6px rgba(255,184,48,0.6)",div:"linear-gradient(to bottom,transparent,rgba(220,160,40,0.2),transparent)" },
-  { name:"— melancolía", ify:"#b08aff", ifySh:"0 0 18px rgba(176,138,255,0.65)",
+  { name:"melancolía", ify:"#b08aff", ifySh:"0 0 18px rgba(176,138,255,0.65)",
     bgA:"radial-gradient(ellipse at 18% 55%,rgba(70,30,130,0.55) 0%,transparent 50%),radial-gradient(ellipse at 78% 22%,rgba(50,20,100,0.45) 0%,transparent 42%),#07050e",
     tabBg:"rgba(22,12,42,0.85)",tabBd:"rgba(130,80,255,0.3)",tabSh:"0 0 18px rgba(130,80,255,0.2),0 0 1px rgba(170,120,255,0.35) inset",tabC:"#d0b8ff",
     btnBd:"rgba(130,80,255,0.3)",btnSh:"0 0 22px rgba(130,80,255,0.18),0 0 1px rgba(170,120,255,0.3) inset",btnC:"#d4b8ff",
     dotBg:"#b08aff",dotSh:"0 0 6px rgba(176,138,255,0.6)",div:"linear-gradient(to bottom,transparent,rgba(130,80,255,0.2),transparent)" },
-  { name:"— positivismo", ify:"#40e0c0",ifySh:"0 0 18px rgba(64,224,192,0.65)",
+  { name:"positivismo", ify:"#40e0c0",ifySh:"0 0 18px rgba(64,224,192,0.65)",
     bgA:"radial-gradient(ellipse at 20% 55%,rgba(15,100,80,0.5) 0%,transparent 50%),radial-gradient(ellipse at 78% 22%,rgba(10,70,60,0.4) 0%,transparent 42%),#050d0b",
     tabBg:"rgba(8,30,25,0.85)",tabBd:"rgba(40,200,170,0.3)",tabSh:"0 0 18px rgba(40,200,170,0.2),0 0 1px rgba(80,230,200,0.35) inset",tabC:"#90e8d8",
     btnBd:"rgba(40,200,170,0.3)",btnSh:"0 0 22px rgba(40,200,170,0.18),0 0 1px rgba(80,230,200,0.3) inset",btnC:"#a0eede",
@@ -151,7 +151,7 @@ async function doLogin() {
   const email    = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-pass').value;
   const btn      = document.getElementById('btn-login');
-  if (!email || !password) { showMsg('msg-login', '❌ Completa todos los campos.', false); return; }
+  if (!email || !password) { showMsg('msg-login', 'Completa todos los campos.', false); return; }
 
   _loginPending = true;
   btn.textContent = 'Entrando…'; btn.disabled = true;
@@ -168,28 +168,26 @@ async function doLogin() {
     try { data = await res.json(); } catch { throw new Error('PARSE_ERROR'); }
 
     if (!res.ok) {
-      showMsg('msg-login', data.detail || '❌ Correo o contraseña incorrectos.', false);
+      showMsg('msg-login', data.detail || 'Correo o contraseña incorrectos.', false);
       return;
     }
 
-    // Éxito — limpiar y redirigir
     document.getElementById('login-email').value = '';
     document.getElementById('login-pass').value  = '';
 
     localStorage.setItem('moodify_token',    data.token);
     localStorage.setItem('moodify_username', data.username);
-    showMsg('msg-login', '✅ ¡Bienvenido! Cargando...', true);
+    showMsg('msg-login', 'Bienvenido. Cargando...', true);
 
-    // Pequeño delay para que el usuario vea el mensaje de éxito
     setTimeout(() => { window.location.href = '/app'; }, 400);
 
   } catch (e) {
     if (e.message === 'PARSE_ERROR') {
-      showMsg('msg-login', '❌ Respuesta inesperada del servidor. Intenta de nuevo.', false);
+      showMsg('msg-login', 'Respuesta inesperada del servidor. Intenta de nuevo.', false);
     } else if (e.name === 'TypeError' && e.message.includes('fetch')) {
-      showMsg('msg-login', '❌ No se pudo conectar al servidor.', false);
+      showMsg('msg-login', 'No se pudo conectar al servidor.', false);
     } else {
-      showMsg('msg-login', '❌ Error de conexión. ¿Está corriendo el backend?', false);
+      showMsg('msg-login', 'Error de conexión. Verifica que el servidor esté activo.', false);
     }
     console.error('[login] Error:', e);
   } finally {
@@ -207,7 +205,7 @@ async function doRegistro() {
   const btn      = document.getElementById('btn-registro');
 
   if (!username || !email || !password) {
-    showMsg('msg-registro', '❌ Completa todos los campos.', false);
+    showMsg('msg-registro', 'Completa todos los campos.', false);
     return;
   }
 
@@ -226,16 +224,15 @@ async function doRegistro() {
     try { data = await res.json(); } catch { throw new Error('PARSE_ERROR'); }
 
     if (!res.ok) {
-      showMsg('msg-registro', data.detail || '❌ No se pudo crear la cuenta.', false);
+      showMsg('msg-registro', data.detail || 'No se pudo crear la cuenta.', false);
       return;
     }
 
-    // Éxito
     document.getElementById('reg-username').value = '';
     document.getElementById('reg-email').value    = '';
     document.getElementById('reg-pass').value     = '';
 
-    showMsg('msg-registro', '✅ Cuenta creada — inicia sesión', true);
+    showMsg('msg-registro', 'Cuenta creada. Inicia sesión.', true);
 
     setTimeout(() => {
       switchTab('login');
@@ -245,9 +242,9 @@ async function doRegistro() {
 
   } catch (e) {
     if (e.message === 'PARSE_ERROR') {
-      showMsg('msg-registro', '❌ Respuesta inesperada del servidor. Intenta de nuevo.', false);
+      showMsg('msg-registro', 'Respuesta inesperada del servidor. Intenta de nuevo.', false);
     } else {
-      showMsg('msg-registro', '❌ Error de conexión. ¿Está corriendo el backend?', false);
+      showMsg('msg-registro', 'Error de conexión. Verifica que el servidor esté activo.', false);
     }
     console.error('[registro] Error:', e);
   } finally {

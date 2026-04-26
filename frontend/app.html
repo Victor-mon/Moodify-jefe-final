@@ -6,13 +6,13 @@
   <title>Moodify</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@200;300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
   <link rel="icon" type="image/png" href="/static/icono.png">
 </head>
 <body>
 
-<!-- FONDO ATMOSFÉRICO — igual que login -->
+<!-- FONDO ATMOSFÉRICO -->
 <canvas id="stars-canvas"></canvas>
 <div id="galaxy-bg">
   <div class="galaxy-layer" id="gl-a"></div>
@@ -46,15 +46,15 @@
 <!-- NAV -->
 <nav class="top-nav" id="top-nav">
   <div class="nav-tabs" id="nav-tabs">
-    <button class="nav-tab active" data-tab="transformar" onclick="switchPanel('transformar')">✦ Transformar</button>
-    <button class="nav-tab"        data-tab="historial"   onclick="switchPanel('historial')">📋 Historial</button>
-    <button class="nav-tab"        data-tab="favoritos"   onclick="switchPanel('favoritos')">★ Favoritos</button>
-    <button class="nav-tab locked" data-tab="estadisticas" id="tab-stats">📊 Estadísticas</button>
+    <button class="nav-tab active" data-tab="transformar" onclick="switchPanel('transformar')">Transformar</button>
+    <button class="nav-tab"        data-tab="historial"   onclick="switchPanel('historial')">Historial</button>
+    <button class="nav-tab"        data-tab="favoritos"   onclick="switchPanel('favoritos')">Favoritos</button>
+    <button class="nav-tab locked" data-tab="estadisticas" id="tab-stats">Estadisticas</button>
   </div>
   <div class="nav-right">
     <div class="nav-dot"></div>
     <span class="nav-username" id="nav-username">@usuario</span>
-    <button class="btn-nav-config" onclick="openConfig()">⚙ Configuración</button>
+    <button class="btn-nav-config" onclick="openConfig()">Configuracion</button>
   </div>
 </nav>
 
@@ -62,8 +62,8 @@
 <div class="config-overlay" id="cfg-overlay" onclick="closeConfigOutside(event)">
   <div class="config-modal">
     <div class="cfg-header">
-      <span class="cfg-title">Configuración</span>
-      <button class="cfg-close" onclick="closeConfig()">✕</button>
+      <span class="cfg-title">Configuracion</span>
+      <button class="cfg-close" onclick="closeConfig()">x</button>
     </div>
 
     <div class="cfg-section">
@@ -78,11 +78,11 @@
       <div class="cfg-row">
         <div>
           <div class="cfg-row-label">Idioma del agente</div>
-          <div class="cfg-row-sub" id="cfg-lang-sub">Español está optimizado para México</div>
+          <div class="cfg-row-sub" id="cfg-lang-sub">Espanol esta optimizado para Mexico</div>
         </div>
         <select class="cfg-select" id="cfg-lang-select" onchange="setAgentLang(this.value)">
-          <option value="es">🇲🇽 Español</option>
-          <option value="en">🇺🇸 English</option>
+          <option value="es">ES — Espanol</option>
+          <option value="en">EN — English</option>
         </select>
       </div>
     </div>
@@ -98,14 +98,14 @@
       </div>
       <div class="cfg-row">
         <div>
-          <div class="cfg-row-label">Correo electrónico</div>
+          <div class="cfg-row-label">Correo electronico</div>
           <div class="cfg-row-sub" id="cfg-email-display">—</div>
         </div>
         <button class="cfg-btn-inline" onclick="startChangeEmail()">Cambiar</button>
       </div>
       <div class="cfg-row">
         <div>
-          <div class="cfg-row-label">Contraseña</div>
+          <div class="cfg-row-label">Contrasena</div>
           <div class="cfg-row-sub">••••••••</div>
         </div>
         <button class="cfg-btn-inline" onclick="startChangePassword()">Cambiar</button>
@@ -115,9 +115,9 @@
     <div class="cfg-divider"></div>
 
     <div class="cfg-section" style="margin-bottom:0;">
-      <div class="cfg-section-title">Sesión</div>
-      <button class="cfg-btn-full cfg-btn-logout" onclick="doLogout()">↩ Cerrar sesión</button>
-      <button class="cfg-btn-full cfg-btn-danger" style="margin-top:8px;" onclick="confirmDeleteAccount()">✕ Eliminar cuenta</button>
+      <div class="cfg-section-title">Sesion</div>
+      <button class="cfg-btn-full cfg-btn-logout" onclick="doLogout()">Cerrar sesion</button>
+      <button class="cfg-btn-full cfg-btn-danger" style="margin-top:8px;" onclick="confirmDeleteAccount()">Eliminar cuenta</button>
     </div>
   </div>
 </div>
@@ -126,11 +126,11 @@
 <div class="main-wrap app-panel active" id="panel-transformar">
 
   <div class="moodify-header">
-    <!-- TÍTULO SIMPLE Y ELEGANTE — las OO son los ojos -->
+    <!-- Título elegante con OOs que cambian de color -->
     <div class="moodify-titulo">
-      M<span class="eyes-inline"><span class="eye-char">O</span><span class="eye-char">O</span></span>DIFY
+      M<span class="eyes-inline"><span class="eye-char" id="oo-left">O</span><span class="eye-char" id="oo-right">O</span></span>DIFY
     </div>
-    <div class="moodify-sub"><span class="moodify-sub-accent">▸</span> REESCRITURA INTELIGENTE CON IA</div>
+    <div class="moodify-sub"><span class="moodify-sub-accent">—</span> Reescritura inteligente con IA</div>
   </div>
 
   <div class="transform-grid">
@@ -139,19 +139,19 @@
       <textarea
         class="textarea-main"
         id="msg-input"
-        placeholder="Escribe aquí tu mensaje — con groserías, slang, emojis o como salga..."
+        placeholder="Escribe aqui tu mensaje — con groserías, slang, emojis o como salga..."
         oninput="onInputChange()"
         onkeydown="if(event.ctrlKey&&event.key==='Enter')doTransform()"
       ></textarea>
-      <button class="btn-transform" onclick="doTransform()">Transformar ✦</button>
+      <button class="btn-transform" onclick="doTransform()">Transformar</button>
 
       <div class="detector-box" id="detector-box">
-        <div class="det-neutral">🌐 Idioma — Escribe para detectar</div>
+        <div class="det-neutral">Idioma — Escribe para detectar</div>
       </div>
 
       <div class="clippy-wrap" id="clippy-wrap" style="display:none;">
         <div class="clippy-header">
-          <span class="clip-dot"></span> MOODIFY DICE
+          <span class="clip-dot"></span> Moodify dice
         </div>
         <div id="clippy-items"></div>
       </div>
@@ -160,21 +160,21 @@
     <!-- Columna derecha -->
     <div>
       <div class="lang-bar">
-        <span class="lang-label">🌐 Salida en</span>
-        <button class="lang-btn on" id="btn-es" onclick="selectLang('es')">✓ ES 🇲🇽</button>
-        <button class="lang-btn"   id="btn-en" onclick="selectLang('en')">EN 🇺🇸</button>
-        <button class="btn-translate" onclick="doTranslate()">Traducir ✦</button>
+        <span class="lang-label">Salida en</span>
+        <button class="lang-btn on" id="btn-es" onclick="selectLang('es')">ES</button>
+        <button class="lang-btn"   id="btn-en" onclick="selectLang('en')">EN</button>
+        <button class="btn-translate" onclick="doTranslate()">Traducir</button>
       </div>
 
-      <div class="outputs-label">— VERSIONES ADAPTADAS</div>
+      <div class="outputs-label">Versiones adaptadas</div>
 
       <div class="output-section">
         <div class="output-card card-dipl">
           <div class="output-header">
-            <span class="tone-badge badge-dipl">🤝 Diplomático</span>
+            <span class="tone-badge badge-dipl">Diplomatico</span>
           </div>
           <div class="output-body" id="out-dipl">
-            <span class="output-placeholder">La versión diplomática aparecerá aquí...</span>
+            <span class="output-placeholder">La version diplomatica aparecera aqui...</span>
           </div>
         </div>
       </div>
@@ -182,10 +182,10 @@
       <div class="output-section">
         <div class="output-card card-ejec">
           <div class="output-header">
-            <span class="tone-badge badge-ejec">💼 Ejecutivo</span>
+            <span class="tone-badge badge-ejec">Ejecutivo</span>
           </div>
           <div class="output-body" id="out-ejec">
-            <span class="output-placeholder">La versión ejecutiva aparecerá aquí...</span>
+            <span class="output-placeholder">La version ejecutiva aparecera aqui...</span>
           </div>
         </div>
       </div>
@@ -193,10 +193,10 @@
       <div class="output-section">
         <div class="output-card card-casu">
           <div class="output-header">
-            <span class="tone-badge badge-casu">😊 Casual</span>
+            <span class="tone-badge badge-casu">Casual</span>
           </div>
           <div class="output-body" id="out-casu">
-            <span class="output-placeholder">La versión casual aparecerá aquí...</span>
+            <span class="output-placeholder">La version casual aparecera aqui...</span>
           </div>
         </div>
       </div>
@@ -207,7 +207,7 @@
 <!-- PANEL: HISTORIAL -->
 <div class="main-wrap app-panel" id="panel-historial">
   <div class="section-wrap">
-    <div class="section-title">— HISTORIAL DE MENSAJES</div>
+    <div class="section-title">Historial de mensajes</div>
     <div id="historial-content"><div class="empty-state">Cargando...</div></div>
   </div>
 </div>
@@ -215,7 +215,7 @@
 <!-- PANEL: FAVORITOS -->
 <div class="main-wrap app-panel" id="panel-favoritos">
   <div class="section-wrap">
-    <div class="section-title">— FAVORITOS</div>
+    <div class="section-title">Favoritos</div>
     <div id="favoritos-content"><div class="empty-state">Cargando...</div></div>
   </div>
 </div>
@@ -223,7 +223,7 @@
 <!-- PANEL: ESTADÍSTICAS -->
 <div class="main-wrap app-panel" id="panel-estadisticas">
   <div class="section-wrap">
-    <div class="section-title">— TUS ESTADÍSTICAS</div>
+    <div class="section-title">Tus estadisticas</div>
     <div id="stats-content"><div class="empty-state">Cargando...</div></div>
   </div>
 </div>
@@ -233,31 +233,55 @@
 
 <script>
 /* ══════════════════════════════════════
-   FONDO ATMOSFÉRICO — mismo sistema que login
-   Gradientes sólidos, crossfade suave
+   FONDO EMOCIONAL — mismo sistema que login
+   Las OOs del título sincronizan su color
 ══════════════════════════════════════ */
-const EMOCIONES_BG = [
-  /* calma        */
-  "radial-gradient(ellipse at 20% 55%, rgba(20,90,40,0.6) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(10,60,80,0.45) 0%, transparent 48%), #04090a",
-  /* frustración  */
-  "radial-gradient(ellipse at 25% 50%, rgba(140,30,20,0.6) 0%, transparent 50%), radial-gradient(ellipse at 75% 25%, rgba(100,20,10,0.48) 0%, transparent 45%), #0d0605",
-  /* paz          */
-  "radial-gradient(ellipse at 15% 55%, rgba(20,60,140,0.55) 0%, transparent 52%), radial-gradient(ellipse at 80% 20%, rgba(10,40,100,0.48) 0%, transparent 45%), #060810",
-  /* urgencia     */
-  "radial-gradient(ellipse at 20% 50%, rgba(120,70,10,0.6) 0%, transparent 50%), radial-gradient(ellipse at 78% 22%, rgba(90,50,5,0.48) 0%, transparent 45%), #0d0a04",
-  /* melancolía   */
-  "radial-gradient(ellipse at 18% 55%, rgba(70,30,130,0.6) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(50,20,100,0.48) 0%, transparent 45%), #07050e",
-  /* positivismo  */
-  "radial-gradient(ellipse at 20% 55%, rgba(15,100,80,0.55) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(10,70,60,0.45) 0%, transparent 45%), #050d0b",
-];
 
-const EMOCIONES_BG_LIGHT = [
-  "radial-gradient(ellipse at 20% 55%, rgba(34,201,122,0.32) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(26,160,200,0.28) 0%, transparent 48%), #f0f2ee",
-  "radial-gradient(ellipse at 25% 50%, rgba(240,80,80,0.3) 0%, transparent 50%), radial-gradient(ellipse at 75% 25%, rgba(192,32,32,0.25) 0%, transparent 45%), #f2eded",
-  "radial-gradient(ellipse at 15% 55%, rgba(64,144,232,0.3) 0%, transparent 52%), radial-gradient(ellipse at 80% 20%, rgba(32,96,192,0.25) 0%, transparent 45%), #edf0f5",
-  "radial-gradient(ellipse at 20% 50%, rgba(240,160,32,0.3) 0%, transparent 50%), radial-gradient(ellipse at 78% 22%, rgba(192,112,16,0.25) 0%, transparent 45%), #f5f0e8",
-  "radial-gradient(ellipse at 18% 55%, rgba(144,96,224,0.3) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(96,48,184,0.25) 0%, transparent 45%), #f0edf5",
-  "radial-gradient(ellipse at 20% 55%, rgba(48,192,144,0.3) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(16,160,96,0.25) 0%, transparent 45%), #ecf5f2",
+/* Colores de acento para cada emoción — las OOs adoptan este color
+   con contraste suficiente sobre el fondo oscuro */
+const EMOCIONES_APP = [
+  {
+    name: "calma",
+    oo: "#7dc86a",
+    ooSh: "0 0 20px rgba(125,200,106,0.5)",
+    dark:  "radial-gradient(ellipse at 20% 55%, rgba(20,90,40,0.6) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(10,60,80,0.45) 0%, transparent 48%), #04090a",
+    light: "radial-gradient(ellipse at 20% 55%, rgba(34,201,122,0.28) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(26,160,200,0.22) 0%, transparent 48%), #f0f2ee",
+  },
+  {
+    name: "frustracion",
+    oo: "#ff6b5b",
+    ooSh: "0 0 20px rgba(255,107,91,0.5)",
+    dark:  "radial-gradient(ellipse at 25% 50%, rgba(140,30,20,0.6) 0%, transparent 50%), radial-gradient(ellipse at 75% 25%, rgba(100,20,10,0.48) 0%, transparent 45%), #0d0605",
+    light: "radial-gradient(ellipse at 25% 50%, rgba(240,80,80,0.26) 0%, transparent 50%), radial-gradient(ellipse at 75% 25%, rgba(192,32,32,0.2) 0%, transparent 45%), #f2eded",
+  },
+  {
+    name: "paz",
+    oo: "#6ab4ff",
+    ooSh: "0 0 20px rgba(106,180,255,0.5)",
+    dark:  "radial-gradient(ellipse at 15% 55%, rgba(20,60,140,0.55) 0%, transparent 52%), radial-gradient(ellipse at 80% 20%, rgba(10,40,100,0.48) 0%, transparent 45%), #060810",
+    light: "radial-gradient(ellipse at 15% 55%, rgba(64,144,232,0.26) 0%, transparent 52%), radial-gradient(ellipse at 80% 20%, rgba(32,96,192,0.2) 0%, transparent 45%), #edf0f5",
+  },
+  {
+    name: "urgencia",
+    oo: "#ffb830",
+    ooSh: "0 0 20px rgba(255,184,48,0.5)",
+    dark:  "radial-gradient(ellipse at 20% 50%, rgba(120,70,10,0.6) 0%, transparent 50%), radial-gradient(ellipse at 78% 22%, rgba(90,50,5,0.48) 0%, transparent 45%), #0d0a04",
+    light: "radial-gradient(ellipse at 20% 50%, rgba(240,160,32,0.26) 0%, transparent 50%), radial-gradient(ellipse at 78% 22%, rgba(192,112,16,0.2) 0%, transparent 45%), #f5f0e8",
+  },
+  {
+    name: "melancolia",
+    oo: "#b08aff",
+    ooSh: "0 0 20px rgba(176,138,255,0.5)",
+    dark:  "radial-gradient(ellipse at 18% 55%, rgba(70,30,130,0.6) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(50,20,100,0.48) 0%, transparent 45%), #07050e",
+    light: "radial-gradient(ellipse at 18% 55%, rgba(144,96,224,0.26) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(96,48,184,0.2) 0%, transparent 45%), #f0edf5",
+  },
+  {
+    name: "positivismo",
+    oo: "#40e0c0",
+    ooSh: "0 0 20px rgba(64,224,192,0.5)",
+    dark:  "radial-gradient(ellipse at 20% 55%, rgba(15,100,80,0.55) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(10,70,60,0.45) 0%, transparent 45%), #050d0b",
+    light: "radial-gradient(ellipse at 20% 55%, rgba(48,192,144,0.26) 0%, transparent 52%), radial-gradient(ellipse at 78% 22%, rgba(16,160,96,0.2) 0%, transparent 45%), #ecf5f2",
+  },
 ];
 
 let curEmocion  = 0;
@@ -267,26 +291,42 @@ let bgTransitioning = false;
 const glA = document.getElementById('gl-a');
 const glB = document.getElementById('gl-b');
 
-function applyBgColors(idx) {
-  const bgs = isLightTheme ? EMOCIONES_BG_LIGHT : EMOCIONES_BG;
+/* Actualiza el color de las OOs en sincronia */
+function updateOOColor(emocion, speed) {
+  const spd = speed || '3.5s';
+  const ooL = document.getElementById('oo-left');
+  const ooR = document.getElementById('oo-right');
+  if (ooL) { ooL.style.transition = `color ${spd} ease, text-shadow ${spd} ease`; ooL.style.color = emocion.oo; ooL.style.textShadow = emocion.ooSh; }
+  if (ooR) { ooR.style.transition = `color ${spd} ease, text-shadow ${spd} ease`; ooR.style.color = emocion.oo; ooR.style.textShadow = emocion.ooSh; }
+}
+
+function applyBgColors(fromIdx, toIdx) {
   if (!glA || !glB || bgTransitioning) return;
   bgTransitioning = true;
-  glA.style.background = bgs[curEmocion];
-  glA.style.opacity    = '1';
-  glB.style.background = bgs[idx];
-  glB.style.opacity    = '0';
+  const from = EMOCIONES_APP[fromIdx];
+  const to   = EMOCIONES_APP[toIdx];
+  const fromBg = isLightTheme ? from.light : from.dark;
+  const toBg   = isLightTheme ? to.light   : to.dark;
+
+  glA.style.background = fromBg; glA.style.opacity = '1';
+  glB.style.background = toBg;   glB.style.opacity = '0';
+
   requestAnimationFrame(() => requestAnimationFrame(() => {
     glA.style.transition = 'opacity 4s ease';
     glB.style.transition = 'opacity 4s ease';
     glA.style.opacity = '0';
     glB.style.opacity = '1';
+
+    /* Sincronizar OOs con el nuevo color de emoción */
+    updateOOColor(to, '3.5s');
+
     setTimeout(() => {
-      glA.style.background  = bgs[idx];
-      glA.style.opacity     = '1';
-      glA.style.transition  = 'none';
-      glB.style.opacity     = '0';
-      glB.style.transition  = 'none';
-      curEmocion = idx;
+      glA.style.background = toBg;
+      glA.style.opacity    = '1';
+      glA.style.transition = 'none';
+      glB.style.opacity    = '0';
+      glB.style.transition = 'none';
+      curEmocion      = toIdx;
       bgTransitioning = false;
     }, 4200);
   }));
@@ -300,51 +340,37 @@ function initStars() {
   let stars = [];
   let W, H;
 
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
   function createStars() {
     stars = [];
     const count = Math.floor((W * H) / 5000);
     for (let i = 0; i < count; i++) {
-      stars.push({
-        x:     Math.random() * W,
-        y:     Math.random() * H,
-        r:     Math.random() * 1.0 + 0.1,
-        alpha: Math.random() * 0.35 + 0.04,
-        speed: Math.random() * 0.003 + 0.001,
-        phase: Math.random() * Math.PI * 2,
-      });
+      stars.push({ x: Math.random()*W, y: Math.random()*H, r: Math.random()*1.0+0.1, alpha: Math.random()*0.3+0.04, speed: Math.random()*0.003+0.001, phase: Math.random()*Math.PI*2 });
     }
   }
   let frame = 0;
   function draw() {
     ctx.clearRect(0, 0, W, H);
     frame++;
-    const lightBoost = isLightTheme ? 0.4 : 1;
+    const lightBoost = isLightTheme ? 0.3 : 1;
     stars.forEach(s => {
       const twinkle = Math.sin(s.phase + frame * s.speed) * 0.3 + 0.7;
       const alpha   = s.alpha * twinkle * lightBoost;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-      ctx.fillStyle = isLightTheme
-        ? `rgba(60,40,120,${alpha})`
-        : `rgba(255,255,255,${alpha})`;
+      ctx.fillStyle = isLightTheme ? `rgba(60,40,120,${alpha})` : `rgba(255,255,255,${alpha})`;
       ctx.fill();
     });
     requestAnimationFrame(draw);
   }
-  resize();
-  createStars();
-  draw();
+  resize(); createStars(); draw();
   window.addEventListener('resize', () => { resize(); createStars(); });
 }
 
 /* ── CICLO EMOCIONAL — cada 7s ── */
 setInterval(() => {
-  const next = (curEmocion + 1) % EMOCIONES_BG.length;
-  applyBgColors(next);
+  const next = (curEmocion + 1) % EMOCIONES_APP.length;
+  applyBgColors(curEmocion, next);
 }, 7000);
 
 /* ── TOGGLE TEMA ── */
@@ -352,10 +378,9 @@ function toggleTheme() {
   isLightTheme = !isLightTheme;
   document.body.classList.toggle('theme-light', isLightTheme);
 
-  const toggle = document.getElementById('cfg-theme-toggle');
-  if (toggle) toggle.classList.toggle('on', isLightTheme);
-
+  const toggle   = document.getElementById('cfg-theme-toggle');
   const themeSub = document.getElementById('cfg-theme-sub');
+  if (toggle) toggle.classList.toggle('on', isLightTheme);
   if (themeSub) {
     const lang = (typeof currentLang !== 'undefined') ? currentLang : 'es';
     themeSub.textContent = isLightTheme
@@ -363,9 +388,10 @@ function toggleTheme() {
       : (lang === 'en' ? 'Dark mode active'  : 'Modo oscuro activo');
   }
 
-  // Re-aplicar fondo con los colores del tema correcto
-  const bgs = isLightTheme ? EMOCIONES_BG_LIGHT : EMOCIONES_BG;
-  if (glA) { glA.style.transition = 'none'; glA.style.background = bgs[curEmocion]; glA.style.opacity = '1'; }
+  /* Re-aplicar fondo inmediatamente con el tema correcto */
+  const emo = EMOCIONES_APP[curEmocion];
+  const bg  = isLightTheme ? emo.light : emo.dark;
+  if (glA) { glA.style.transition = 'none'; glA.style.background = bg; glA.style.opacity = '1'; }
   if (glB) { glB.style.transition = 'none'; glB.style.opacity = '0'; }
 
   localStorage.setItem('moodify_theme', isLightTheme ? 'light' : 'dark');
@@ -373,7 +399,7 @@ function toggleTheme() {
 
 /* ── INIT ── */
 document.addEventListener('DOMContentLoaded', () => {
-  // Restaurar tema
+  /* Restaurar tema */
   const savedTheme = localStorage.getItem('moodify_theme');
   if (savedTheme === 'light') {
     isLightTheme = true;
@@ -384,16 +410,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeSub) themeSub.textContent = 'Modo claro activo';
   }
 
-  // Restaurar idioma
+  /* Restaurar idioma */
   const savedLang = localStorage.getItem('moodify_agent_lang');
   if (savedLang) {
     const sel = document.getElementById('cfg-lang-select');
     if (sel) sel.value = savedLang;
   }
 
-  // Aplicar fondo inicial
-  const bgs = isLightTheme ? EMOCIONES_BG_LIGHT : EMOCIONES_BG;
-  if (glA) { glA.style.background = bgs[0]; glA.style.opacity = '1'; }
+  /* Aplicar fondo + color OOs inicial */
+  const emo = EMOCIONES_APP[0];
+  const bg  = isLightTheme ? emo.light : emo.dark;
+  if (glA) { glA.style.background = bg; glA.style.opacity = '1'; }
+  updateOOColor(emo, '0s');
 
   initStars();
 });

@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
     background: #060810;
     min-height: 100vh;
-    font-family: 'Inter', -apple-system, sans-serif;
+    font-family: 'DM Sans', -apple-system, sans-serif;
 }
 
 /* ── Layout raíz ── */
@@ -41,89 +41,112 @@ html, body {
 
 /* ── Panel izquierdo ── */
 .login-left {
-    flex: 0 0 50%;
+    flex: 0 0 52%;
     min-height: 100vh;
     background: transparent;
     display: flex;
     flex-direction: column;
-    justify-content: center;       /* centrado vertical */
-    align-items: flex-start;
-    padding: 0 72px;               /* padding horizontal generoso */
+    justify-content: center;
+    align-items: center;           /* centrado horizontal */
+    padding: 0 64px;
     position: relative;
     z-index: 2;
     overflow: hidden;
 }
+
 .login-left::before {
     content: '';
     position: absolute;
     inset: 0;
     background-image:
-        linear-gradient(rgba(255,255,255,0.006) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.006) 1px, transparent 1px);
-    background-size: 52px 52px;
+        linear-gradient(rgba(255,255,255,0.004) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.004) 1px, transparent 1px);
+    background-size: 60px 60px;
     pointer-events: none;
 }
 .login-divider {
     position: absolute;
     right: 0;
-    top: 8%;
-    bottom: 8%;
+    top: 10%;
+    bottom: 10%;
     width: 1px;
     transition: background 3.5s ease;
 }
 .login-left-content {
     position: relative;
     z-index: 1;
-    max-width: 420px;
+    max-width: 480px;
+    width: 100%;
+    text-align: center;            /* centrado del texto */
 }
 
+/* ── Marca tipográfica ── */
 .login-brand {
-    font-size: 3.6rem;
-    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 5rem;
+    font-weight: 300;
     color: #ffffff;
-    letter-spacing: -3px;
+    letter-spacing: -0.04em;
     line-height: 1;
-    margin-bottom: 18px;
+    margin-bottom: 6px;
 }
+
 #login-ify {
     transition: color 3.5s ease, text-shadow 3.5s ease;
-}
-.login-tagline {
-    font-size: 15px;
-    color: rgba(255,255,255,0.45);
-    line-height: 1.85;
-    max-width: 360px;
     font-weight: 300;
-    margin-bottom: 44px;
-    letter-spacing: 0.1px;
 }
+
+.login-brand-sub {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 400;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    margin-bottom: 52px;
+}
+
+.login-tagline {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.42);
+    line-height: 1.9;
+    max-width: 400px;
+    font-weight: 300;
+    margin: 0 auto 48px;
+    letter-spacing: 0.01em;
+}
+
+/* ── Lista de features ── */
 .login-features {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+    margin-bottom: 48px;
+    align-items: center;
 }
 .login-feature {
     display: flex;
     align-items: center;
     gap: 12px;
-    font-size: 13.5px;
-    color: rgba(255,255,255,0.45);
+    font-size: 13px;
+    color: rgba(255,255,255,0.38);
     font-weight: 300;
-    letter-spacing: 0.1px;
+    letter-spacing: 0.02em;
 }
 .login-fdot {
-    width: 5px;
-    height: 5px;
+    width: 4px;
+    height: 4px;
     border-radius: 50%;
     flex-shrink: 0;
     transition: background 3.5s ease, box-shadow 3.5s ease;
 }
+
+/* ── Etiqueta emocional ── */
 .login-emolabel {
-    font-size: 10px;
-    letter-spacing: 2.5px;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.22);
-    margin-top: 36px;
+    color: rgba(255,255,255,0.18);
     font-weight: 400;
     transition: color 3.5s ease;
 }
@@ -143,30 +166,33 @@ html, body {
 /* ── Card ── */
 .login-card {
     width: 100%;
-    max-width: 380px;
+    max-width: 390px;
     background: rgba(255,255,255,0.03);
-    backdrop-filter: blur(32px) saturate(1.6);
-    -webkit-backdrop-filter: blur(32px) saturate(1.6);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
     border: 1px solid rgba(255,255,255,0.07);
     border-radius: 24px;
-    padding: 44px 40px;
+    padding: 48px 42px;
     box-shadow: 0 40px 80px rgba(0,0,0,0.6);
 }
 
 .login-heading {
-    font-size: 2.1rem;
-    font-weight: 500;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.4rem;
+    font-weight: 400;
+    font-style: italic;
     color: #f0f0f8;
-    letter-spacing: -1.5px;
+    letter-spacing: -0.02em;
     line-height: 1.1;
     margin-bottom: 6px;
 }
 #login-h1acc { transition: color 3.5s ease; }
+
 .login-heading-sub {
-    font-size: 13px;
-    color: rgba(255,255,255,0.28);
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.25);
     font-weight: 300;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.02em;
     margin-bottom: 32px;
     min-height: 18px;
     transition: opacity 0.4s ease;
@@ -187,13 +213,13 @@ html, body {
     background: transparent;
     border: none;
     border-radius: 10px;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 400;
     color: rgba(255,255,255,0.22);
     padding: 10px;
     cursor: pointer;
-    font-family: 'Inter', sans-serif;
-    letter-spacing: 0.2px;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.03em;
     transition: background 3.5s ease, color 3.5s ease, box-shadow 3.5s ease;
 }
 .login-tab-btn.active { font-weight: 500; }
@@ -202,29 +228,29 @@ html, body {
 .field-group { margin-bottom: 22px; }
 .field-label {
     display: block;
-    font-size: 10px;
+    font-size: 9.5px;
     font-weight: 500;
-    color: rgba(255,255,255,0.3);
-    letter-spacing: 1.5px;
+    color: rgba(255,255,255,0.28);
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    margin-bottom: 9px;
+    margin-bottom: 10px;
 }
 .field-input {
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(255,255,255,0.12);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     padding: 9px 0;
     font-size: 14px;
     color: #e0e0f0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     font-weight: 300;
     caret-color: #a0d888;
     outline: none;
     transition: border-color 0.25s;
 }
-.field-input:focus { border-bottom-color: rgba(130,80,255,0.5); }
-.field-input::placeholder { color: rgba(255,255,255,0.12); }
+.field-input:focus { border-bottom-color: rgba(180,240,80,0.45); }
+.field-input::placeholder { color: rgba(255,255,255,0.1); }
 
 /* ── Botón principal ── */
 .login-btn {
@@ -232,12 +258,12 @@ html, body {
     background: rgba(8,5,20,0.75);
     border-radius: 12px;
     font-weight: 500;
-    font-size: 14px;
+    font-size: 13px;
     padding: 14px;
     cursor: pointer;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.06em;
     margin-top: 8px;
-    font-family: 'Inter', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     backdrop-filter: blur(16px);
     position: relative;
     overflow: hidden;
@@ -258,13 +284,13 @@ html, body {
 
 /* ── Mensajes feedback ── */
 .login-msg {
-    font-size: 12.5px;
+    font-size: 12px;
     text-align: center;
     margin-top: 14px;
     padding: 10px 14px;
     border-radius: 8px;
     font-weight: 400;
-    letter-spacing: 0.1px;
+    letter-spacing: 0.01em;
     display: none;
 }
 .login-msg.visible { display: block; }
