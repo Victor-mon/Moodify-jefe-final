@@ -46,14 +46,15 @@ agent = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global agent
-    hf_token  = os.getenv("HF_TOKEN")
+    colab_url = os.getenv("COLAB_LLM_URL", "").strip()
     mock_mode = os.getenv("MOCK_MODE", "false").lower() == "true"
-    if hf_token and not mock_mode:
-        print("🔄 Cargando modelo LLM...")
+    
+    if colab_url and not mock_mode:
+        print("🔄 Conectando con servidor LLM en Colab...")
         from model import MessageToneAgent
         agent = MessageToneAgent()
     else:
-        print("⚠️  MOCK_MODE activo — el LLM no se cargará (modo preview)")
+        print("⚠️  MOCK_MODE activo o sin COLAB_LLM_URL")
     yield
     print("👋 Apagando servidor")
 
