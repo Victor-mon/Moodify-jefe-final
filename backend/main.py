@@ -314,7 +314,10 @@ async def transform(body: TransformRequest, user=Depends(get_current_user)):
             yield sse_event({"type": "progress", "pct": 42, "stage": "dipl", "label": "Generando tono diplomático..."})
             await asyncio.sleep(0)
 
-            result = agent.procesar(body.mensaje)
+            result    = agent.procesar(body.mensaje)
+            tips_llm  = agent.generar_tips_llm(body.mensaje)
+            if tips_llm:
+                result["tips"] = tips_llm
 
             yield sse_event({"type": "progress", "pct": 78, "stage": "ejec", "label": "Generando tono ejecutivo..."})
             await asyncio.sleep(0)

@@ -312,3 +312,83 @@ class MessageToneAgent:
             "tono":        ctx["tono_emocional"],
             "intensidad":  ctx["intensidad"],
         }
+    def generar_tips_llm(self, mensaje: str) -> list:
+        """
+        Genera tips contextuales + humor usando el LLM.
+        Se llama en paralelo con procesar() desde main.py.
+        Devuelve lista de dicts con icono, titulo, texto.
+        En caso de error devuelve lista vacía (el frontend
+        ya tiene fallback con los tips rule-based).
+        """
+        try:
+            pre = PreProcesador().analizar(mensaje)
+            ctx = RoleMatrix().analizar(mensaje, pre)
+            tono    = ctx.get("tono_emocional", "neutro")
+            tipo    = ctx.get("tipo", "general")
+            groserías = pre.get("tiene_groserías", False)
+
+            prompt = (
+                "Eres Moodi, un asistente de comunicación laboral mexicano. "
+                "Tienes personalidad: eres directo, empático y con humor sutil. "
+                "Analiza el siguiente mensaje y genera exactamente 3 items en JSON.\n\n"
+                f"Mensaje: \"{mensaje[:300]}\"\n"
+                f"Tono emocional detectado: {tono}\n"
+                f"Tipo de mensaje: {tipo}\n"
+                f"Tiene groserías: {groserías}\n\n"
+                "Reglas:\n"
+                "- Item 1: consejo sobre el tono o impacto del mensaje\n"
+                "- Item 2: consejo práctico de redacción\n"
+                "- Item 3: un chiste o comentario con humor ligero relacionado al mensaje o tono\n"
+                "- Usa iconos: 🔴 para urgente/alerta, 🟡 para precaución, ✅ para positivo, 💡 para consejo, 😄 para humor\n"
+                "- Máximo 20 palabras en 'titulo', máximo 35 palabras en 'texto'\n"
+                "- Responde ÚNICAMENTE con un array JSON válido, sin texto adicional, sin markdown:\n"
+                "[{\"icono\":\"💡\",\"titulo\":\"...\",\"texto\":\"...\"},...]"
+            )
+
+            model_device = self._get_model_device()
+            chat    = [{"role": "user", "content": prompt}]
+            tp      = self.tokenizer.apply_chat_template(chat, tokenize=False, add_generation_prompt=True)
+            encoded = self.tokenizer(tp, return_tensors="pt", truncation=True, max_length=768)
+            inputs  = {k: v.to(model_device) for k, v in encoded.items()
+                       if k in ("input_ids", "attention_mask")}
+
+            with torch.inference_mode():
+                out = self.model.generate(
+                    **inputs,
+                    max_new_tokens=180,
+                    temperature=0.55,
+                    top_p=0.90,
+                    top_k=40,
+                    do_sample=True,
+                    repetition_penalty=1.05,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                    eos_token_id=self.tokenizer.eos_token_id,
+                    use_cache=True,
+                )
+
+            if hasattr(out, "sequences"):
+                out = out.sequences
+            gen = out[0][inputs["input_ids"].shape[-1]:]
+            raw = self.tokenizer.decode(gen, skip_special_tokens=True).strip()
+
+            # Limpiar y parsear JSON
+            import re, json
+            match = re.search(r'\[.*\]', raw, re.DOTALL)
+            if not match:
+                return []
+            tips = json.loads(match.group(0))
+
+            # Validar estructura
+            resultado = []
+            for tip in tips[:3]:
+                if isinstance(tip, dict) and "icono" in tip and "titulo" in tip and "texto" in tip:
+                    resultado.append({
+                        "icono":  str(tip["icono"])[:4],
+                        "titulo": str(tip["titulo"])[:80],
+                        "texto":  str(tip["texto"])[:160],
+                    })
+            return resultado
+
+        except Exception as e:
+            print(f"[tips_llm] Error: {e}")
+            return []
