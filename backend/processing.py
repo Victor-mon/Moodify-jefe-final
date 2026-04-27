@@ -421,4 +421,4 @@ class PromptBuilder:
             base = "TONO EJECUTIVO — identidad: RESULTADO PRIMERO\n1. HECHO: primera oración = dato más importante.\n2. IMPACTO: consecuencia.\n3. ACCIÓN: qué se necesita hacer.\n· Voz activa. Frases cortas.\nPROHIBIDO: 'Agradecería', cierres suaves, relleno."
         else:
             base = "TONO CASUAL LABORAL — identidad: PERSONA REAL EN EL TRABAJO\n· Compañero de confianza mexicano. Directo y auténtico.\n· Conectores: porque, así que, por eso.\n· Español de México. Sin inglés."
-        return base + em_nota + 
+        return base + em_nota + long_nota
