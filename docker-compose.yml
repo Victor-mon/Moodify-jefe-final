@@ -14,6 +14,7 @@ services:
       - .env
     environment:
       - MOCK_MODE=true
+
     volumes:
       - ./backend:/app/backend
       - ./frontend:/app/frontend
@@ -39,6 +40,8 @@ services:
       - MKL_NUM_THREADS=8
       # Optimización de memoria para modelos grandes en CPU
       - PYTORCH_NO_CUDA_MEMORY_CACHING=1
+      - COLAB_LLM_URL=${COLAB_LLM_URL}
+      - COLAB_API_KEY=${COLAB_API_KEY}
     volumes:
       # Cache de HuggingFace: evita re-descargar el modelo (~9 GB) en cada build
       - hf-cache:/root/.cache/huggingface
@@ -51,3 +54,4 @@ services:
 
 volumes:
   hf-cache:
+
