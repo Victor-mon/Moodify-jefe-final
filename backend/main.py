@@ -121,6 +121,9 @@ class UsernameRequest(BaseModel):
 class EmailRequest(BaseModel):
     email: str
 
+class PasswordChangeRequest(BaseModel):
+    old_password: str
+    new_password: str
 
 # ── Rutas: páginas HTML ───────────────────────────────────────
 
@@ -383,3 +386,29 @@ def toggle_fav(record_id: str, body: FavoritoRequest, user=Depends(get_current_u
 @app.get("/api/estadisticas")
 def estadisticas(user=Depends(get_current_user)):
     return obtener_estadisticas(user.id)
+
+@app.put("/api/perfil/password")
+def cambiar_password(body: PasswordChangeRequest, user=Depends(get_current_user)):
+    if len(body.new_password) < 6:
+        raise HTTPException(status_code=400, detail="❌ La contraseña debe tener al menos 6 caracteres.")
+    try:
+        # Obtener el email del usuario
+        profile = db.table("profiles").select("email").eq("id", user.id).execute()
+        email = profile.data[0]["email"] if profile.data else getattr(user, "email", "")
+        if not email:
+            raise HTTPException(status_code=400, detail="❌ No se encontró el correo del usuario.")
+
+        # Verificar contraseña actual intentando hacer login
+        try:
+            supabase_client.auth.sign_in_with_password({"email": email, "password": body.old_password})
+        except Exception:
+            raise HTTPException(status_code=400, detail="❌ La contraseña actual es incorrecta.")
+
+        # Actualizar contraseña directamente via admin
+        db.auth.admin.update_user_by_id(user.id, {"password": body.new_password})
+        return {"ok": True, "message": "✅ Contraseña actualizada correctamente."}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[password] Error: {e}")
+        raise HTTPException(status_code=500, detail="❌ Error al actualizar la contraseña.")

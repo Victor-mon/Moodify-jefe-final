@@ -39,13 +39,13 @@ const I18N = {
     cfg_title:        'Configuración',
     cfg_appearance:   'Apariencia',
     cfg_theme_lbl:    'Tema',
-    cfg_theme_dark:   'Modo oscuro activo',
-    cfg_theme_light:  'Modo claro activo',
+    cfg_theme_dark:   'Modo oscuro',
+    cfg_theme_light:  'Modo claro',
     cfg_lang_lbl:     'Idioma del agente',
-    cfg_lang_sub:     'Español está optimizado para México',
+    cfg_lang_sub:     'ES optimizado para México',
     cfg_account:      'Cuenta',
-    cfg_username_lbl: 'Nombre de usuario',
-    cfg_email_lbl:    'Correo electrónico',
+    cfg_username_lbl: 'Usuario',
+    cfg_email_lbl:    'Correo',
     cfg_pass_lbl:     'Contraseña',
     cfg_pass_dots:    '••••••••',
     cfg_change:       'Cambiar',
@@ -92,13 +92,13 @@ const I18N = {
     cfg_title:        'Settings',
     cfg_appearance:   'Appearance',
     cfg_theme_lbl:    'Theme',
-    cfg_theme_dark:   'Dark mode active',
-    cfg_theme_light:  'Light mode active',
+    cfg_theme_dark:   'Dark mode',
+    cfg_theme_light:  'Light mode',
     cfg_lang_lbl:     'Agent language',
-    cfg_lang_sub:     'Spanish is optimized for Mexico',
+    cfg_lang_sub:     'ES optimized for Mexico',
     cfg_account:      'Account',
     cfg_username_lbl: 'Username',
-    cfg_email_lbl:    'Email address',
+    cfg_email_lbl:    'Email',
     cfg_pass_lbl:     'Password',
     cfg_pass_dots:    '••••••••',
     cfg_change:       'Change',
@@ -120,6 +120,7 @@ function t(key) {
 }
 
 function applyI18n() {
+  // ── Navegación ──────────────────────────────────────────────
   document.querySelectorAll('.nav-tab[data-tab]').forEach(btn => {
     const keyMap = {
       'transformar':  'nav_transform',
@@ -134,6 +135,7 @@ function applyI18n() {
   const cfgBtn = document.querySelector('.btn-nav-config');
   if (cfgBtn) cfgBtn.textContent = t('nav_config');
 
+  // ── Panel transformar ───────────────────────────────────────
   const btnTr = document.querySelector('.btn-transform');
   if (btnTr) btnTr.textContent = t('btn_transform');
 
@@ -178,6 +180,7 @@ function applyI18n() {
     clippyH.innerHTML = `<span class="clip-dot"></span> ${t('clippy_header')}`;
   }
 
+  // ── Secciones historial/favoritos/stats ─────────────────────
   const secH = document.querySelector('#panel-historial .section-title');
   if (secH) secH.textContent = t('sec_historial');
   const secF = document.querySelector('#panel-favoritos .section-title');
@@ -185,35 +188,44 @@ function applyI18n() {
   const secE = document.querySelector('#panel-estadisticas .section-title');
   if (secE) secE.textContent = t('sec_estadisticas');
 
+  // ── Modal configuración (nuevo diseño compacto) ─────────────
+  // Título del modal
   const cfgTitle = document.querySelector('.cfg-title');
   if (cfgTitle) cfgTitle.textContent = t('cfg_title');
 
-  const cfgSections = document.querySelectorAll('.cfg-section-title');
-  const sectionKeys = ['cfg_appearance', 'cfg_account', 'cfg_session'];
-  cfgSections.forEach((el, i) => { if (sectionKeys[i]) el.textContent = t(sectionKeys[i]); });
+  // Títulos de las dos columnas (.cfg-col → .cfg-section-title)
+  const cfgColTitles = document.querySelectorAll('.cfg-col .cfg-section-title');
+  if (cfgColTitles[0]) cfgColTitles[0].textContent = t('cfg_appearance');
+  if (cfgColTitles[1]) cfgColTitles[1].textContent = t('cfg_account');
 
-  const cfgRowLabels = document.querySelectorAll('.cfg-row-label');
-  const rowKeys = ['cfg_theme_lbl', 'cfg_lang_lbl', 'cfg_username_lbl', 'cfg_email_lbl', 'cfg_pass_lbl'];
-  cfgRowLabels.forEach((el, i) => { if (rowKeys[i]) el.textContent = t(rowKeys[i]); });
+  // Labels de cada fila (.cfg-pill-label)
+  const pillLabels = document.querySelectorAll('.cfg-pill-label');
+  const pillKeys = ['cfg_theme_lbl', 'cfg_lang_lbl', 'cfg_username_lbl', 'cfg_email_lbl', 'cfg_pass_lbl'];
+  pillLabels.forEach((el, i) => { if (pillKeys[i]) el.textContent = t(pillKeys[i]); });
 
-  const cfgLangSub = document.getElementById('cfg-lang-sub');
-  if (cfgLangSub) cfgLangSub.textContent = t('cfg_lang_sub');
-
+  // Subtexto del tema (cambia según el estado actual)
   const cfgThemeSub = document.getElementById('cfg-theme-sub');
   if (cfgThemeSub) {
     const isLight = document.body.classList.contains('theme-light');
     cfgThemeSub.textContent = isLight ? t('cfg_theme_light') : t('cfg_theme_dark');
   }
 
+  // Subtexto del idioma
+  const cfgLangSub = document.getElementById('cfg-lang-sub');
+  if (cfgLangSub) cfgLangSub.textContent = t('cfg_lang_sub');
+
+  // Botones "Cambiar" de cuenta
+  document.querySelectorAll('.cfg-btn-inline').forEach(el => {
+    el.textContent = t('cfg_change');
+  });
+
+  // Botones del footer
   const cfgLogout = document.querySelector('.cfg-btn-logout');
   if (cfgLogout) cfgLogout.textContent = t('cfg_logout');
   const cfgDelete = document.querySelector('.cfg-btn-danger');
   if (cfgDelete) cfgDelete.textContent = t('cfg_delete');
 
-  document.querySelectorAll('.cfg-btn-inline').forEach(el => {
-    el.textContent = t('cfg_change');
-  });
-
+  // Historial i18n si existe
   if (typeof renderHistorialI18n === 'function') renderHistorialI18n();
 }
 
@@ -246,9 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const savedLang = sessionStorage.getItem('moodify_agent_lang');
   if (savedLang && (savedLang === 'es' || savedLang === 'en')) {
     currentLang = savedLang;
-    const sel = document.getElementById('cfg-lang-select');
-    if (sel) sel.value = savedLang;
   }
+  // Nota: cfg-lang-select eliminado — el idioma se controla con cfg-btn-es / cfg-btn-en
 
   applyI18n();
 
@@ -267,6 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   checkStatsTab();
+
+  const initialTab = document.querySelector('.nav-tab.active');
+  if (initialTab) updateNavIndicator(initialTab);
 });
 
 function checkStatsTab() {
@@ -351,18 +365,71 @@ function doLogout() {
 }
 
 /* ── Panel navigation ───────────────────────────────────────── */
+// REEMPLAZAR la función switchPanel en app.js:
 function switchPanel(tab) {
-  document.querySelectorAll('.app-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  const current = document.querySelector('.app-panel.active');
+  const next    = document.getElementById(`panel-${tab}`);
+  const navTab  = document.querySelector(`[data-tab="${tab}"]`);
 
-  const panel  = document.getElementById(`panel-${tab}`);
-  const navTab = document.querySelector(`[data-tab="${tab}"]`);
-  if (panel)  panel.classList.add('active');
+  if (current && current !== next) {
+    current.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+    current.style.opacity    = '0';
+    current.style.transform  = 'translateY(6px)';
+    setTimeout(() => {
+      current.classList.remove('active');
+      current.style.opacity   = '';
+      current.style.transform = '';
+      current.style.transition = '';
+      if (next) {
+        next.classList.add('active');
+        next.style.opacity   = '0';
+        next.style.transform = 'translateY(-6px)';
+        void next.offsetWidth;
+        next.style.transition = 'opacity 0.22s ease, transform 0.22s ease';
+        next.style.opacity   = '1';
+        next.style.transform = 'translateY(0)';
+        setTimeout(() => {
+          next.style.transition = '';
+          next.style.opacity    = '';
+          next.style.transform  = '';
+        }, 240);
+      }
+    }, 160);
+  } else if (next) {
+    next.classList.add('active');
+  }
+
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
   if (navTab && !navTab.classList.contains('locked')) navTab.classList.add('active');
+
+  updateNavIndicator(navTab);
 
   if (tab === 'historial')    loadHistorial();
   if (tab === 'favoritos')    loadFavoritos();
   if (tab === 'estadisticas') loadEstadisticas();
+}
+
+function updateNavIndicator(activeEl) {
+  let indicator = document.getElementById('nav-indicator');
+  if (!indicator) {
+    indicator = document.createElement('div');
+    indicator.id = 'nav-indicator';
+    document.getElementById('nav-tabs').appendChild(indicator);
+  }
+  if (!activeEl || activeEl.classList.contains('locked')) {
+    indicator.style.opacity = '0';
+    return;
+  }
+  const rect    = activeEl.getBoundingClientRect();
+  const tabsRect = document.getElementById('nav-tabs').getBoundingClientRect();
+  indicator.style.cssText = `
+    position:absolute; bottom:6px; height:2px; border-radius:2px;
+    background:#B8F000; pointer-events:none;
+    transition: left 0.28s cubic-bezier(.4,0,.2,1), width 0.28s cubic-bezier(.4,0,.2,1), opacity 0.2s;
+    left:${rect.left - tabsRect.left}px;
+    width:${rect.width}px;
+    opacity:1;
+  `;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -462,7 +529,7 @@ function onInputChange() {
   `;
 }
 
-/* ── Transformar — ahora con SSE streaming ──────────────────── */
+/* ── Transformar — SSE streaming ────────────────────────────── */
 async function doTransform() {
   const msg = document.getElementById('msg-input').value.trim();
   if (!msg) return;
@@ -494,7 +561,7 @@ async function doTransform() {
 
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
-      buffer = lines.pop(); // guarda línea incompleta
+      buffer = lines.pop();
 
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue;
@@ -572,7 +639,6 @@ function renderDetector(data) {
    CLIPPY — mascota animada
 ══════════════════════════════════════════════════════════════ */
 
-// Mapa emoción → expresión del personaje
 const CLIPPY_MOODS = {
   '🔴': { eyes: 'angry',   color: '#ff6b5b', glow: 'rgba(255,107,91,0.4)' },
   '🟡': { eyes: 'worried', color: '#ffb830', glow: 'rgba(255,184,48,0.4)' },
@@ -601,13 +667,8 @@ function renderClippyCharacter(mood) {
 
   const e = eyeShapes[eyes] || eyeShapes.neutral;
 
-  // Cejas
-  const browL = e.l ? `<path d="M ${-18},${-28} ${e.l.replace('M-5,-2','').replace('M-5,-4','').replace('M-5,-3','')} " stroke="${color}" stroke-width="2.5" fill="none" stroke-linecap="round"/>` : '';
-
-  // Ojos SVG del personaje
   let eyeSVG = '';
   if (e.big) {
-    // Ojos grandes tipo "alerta"
     eyeSVG = `
       <ellipse cx="-14" cy="-8" rx="8" ry="9" fill="white" opacity="0.95"/>
       <ellipse cx="14"  cy="-8" rx="8" ry="9" fill="white" opacity="0.95"/>
@@ -626,14 +687,12 @@ function renderClippyCharacter(mood) {
       <circle  cx="16"  cy="-9" r="1" fill="white"/>
     `;
   } else {
-    // Ojos en arco (feliz/enojado)
     eyeSVG = `
       <path d="M-20,-8 Q-14,-15 -8,-8"  stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
       <path d="M8,-8   Q14,-15  20,-8"  stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
     `;
   }
 
-  // Cejas según mood
   let browSVG = '';
   if (eyes === 'angry') {
     browSVG = `
@@ -657,7 +716,6 @@ function renderClippyCharacter(mood) {
     `;
   }
 
-  // Boca según mood
   let mouthSVG = '';
   if (eyes === 'happy') {
     mouthSVG = `<path d="M-10,10 Q0,18 10,10" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
@@ -677,31 +735,19 @@ function renderClippyCharacter(mood) {
 
   return `
     <svg class="clippy-face" viewBox="-32 -36 64 70" xmlns="http://www.w3.org/2000/svg">
-      <!-- Cuerpo/cabeza -->
       <ellipse cx="0" cy="0" rx="28" ry="30"
         fill="${color}" opacity="0.15" filter="url(#clippy-blur)"/>
       <ellipse cx="0" cy="0" rx="26" ry="28"
         fill="#0a0d12" stroke="${color}" stroke-width="1.8"/>
-
-      <!-- Brillo superior -->
       <ellipse cx="0" cy="-14" rx="14" ry="7"
         fill="white" opacity="0.04"/>
-
-      <!-- Cejas -->
       ${browSVG}
-
-      <!-- Ojos -->
       ${eyeSVG}
-
-      <!-- Boca -->
       ${mouthSVG}
-
-      <!-- Antenas -->
       <line x1="-8"  y1="-28" x2="-12" y2="-36" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>
       <line x1="8"   y1="-28" x2="12"  y2="-36" stroke="${color}" stroke-width="1.8" stroke-linecap="round"/>
       <circle cx="-12" cy="-36" r="2.5" fill="${color}"/>
       <circle cx="12"  cy="-36" r="2.5" fill="${color}"/>
-
       <defs>
         <filter id="clippy-blur">
           <feGaussianBlur stdDeviation="4"/>
@@ -725,14 +771,12 @@ function renderTips(tips) {
 
   const mood = getClippyMoodFromTips(tips);
 
-  // Renderizar cara
   if (face) {
     face.innerHTML = renderClippyCharacter(mood);
     face.style.setProperty('--clippy-glow', mood.glow);
     face.style.setProperty('--clippy-color', mood.color);
   }
 
-  // Renderizar tips
   items.innerHTML = tips.map((tip, i) => `
     <div class="clip-item" style="animation-delay:${i * 0.08}s">
       <span class="clip-icon">${tip.icono}</span>
@@ -748,11 +792,9 @@ function renderTips(tips) {
     wrap.classList.add('clippy-visible');
   });
 
-  // Animar parpadeo aleatorio de pupilas
   startClippyBlink();
 }
 
-// Animación de parpadeo del personaje
 let clippyBlinkTimer = null;
 function startClippyBlink() {
   if (clippyBlinkTimer) clearInterval(clippyBlinkTimer);
@@ -824,6 +866,12 @@ function openConfig() {
     }).catch(() => {});
   }
 
+  // Marcar botón de idioma activo en el modal
+  ['es','en'].forEach(l => {
+    const btn = document.getElementById('cfg-btn-' + l);
+    if (btn) btn.classList.toggle('active', l === currentLang);
+  });
+
   applyI18n();
 }
 
@@ -838,6 +886,11 @@ function closeConfigOutside(e) {
 
 function setAgentLang(val) {
   setLang(val);
+  // Actualizar estado visual de los botones del modal
+  ['es','en'].forEach(l => {
+    const btn = document.getElementById('cfg-btn-' + l);
+    if (btn) btn.classList.toggle('active', l === val);
+  });
 }
 
 /* ── Cambio de username ─────────────────────────────────────── */
@@ -898,31 +951,41 @@ async function startChangeEmail() {
 
 /* ── Cambio de contraseña ───────────────────────────────────── */
 async function startChangePassword() {
-  const emailDisplay = document.getElementById('cfg-email-display');
-  const storedEmail  = emailDisplay ? emailDisplay.textContent : '';
-  const cleanEmail   = storedEmail && storedEmail !== '—' ? storedEmail : '';
+  const oldPass = prompt(currentLang === 'en'
+    ? 'Current password:'
+    : 'Contraseña actual:');
+  if (!oldPass) return;
 
-  let emailToUse = cleanEmail;
-  if (!emailToUse) {
-    const prompt1 = currentLang === 'en'
-      ? 'Enter your email to receive a reset link:'
-      : 'Ingresa tu correo para recibir el enlace de restablecimiento:';
-    emailToUse = prompt(prompt1);
-    if (!emailToUse || !emailToUse.trim()) return;
-    emailToUse = emailToUse.trim();
+  const newPass = prompt(currentLang === 'en'
+    ? 'New password (min 6 characters):'
+    : 'Nueva contraseña (mínimo 6 caracteres):');
+  if (!newPass || newPass.trim().length < 6) {
+    alert(currentLang === 'en'
+      ? '❌ Password must be at least 6 characters.'
+      : '❌ La contraseña debe tener al menos 6 caracteres.');
+    return;
   }
 
   try {
-    await fetch(`${API}/api/auth/reset-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: emailToUse }),
+    const result = await apiPut('/api/perfil/password', {
+      old_password: oldPass,
+      new_password: newPass.trim(),
     });
+    if (!result) {
+      alert(currentLang === 'en' ? '❌ Connection error.' : '❌ Error de conexión.');
+      return;
+    }
+    if (!result.ok) {
+      alert(result.data?.detail || (currentLang === 'en'
+        ? '❌ Error updating password.'
+        : '❌ Error al actualizar la contraseña.'));
+      return;
+    }
     alert(currentLang === 'en'
-      ? '✅ If an account exists with that email, you will receive a reset link shortly.'
-      : '✅ Si existe una cuenta con ese correo, recibirás un enlace de restablecimiento en breve.');
+      ? '✅ Password updated successfully.'
+      : '✅ Contraseña actualizada correctamente.');
   } catch (e) {
-    alert(currentLang === 'en' ? '❌ Connection error. Try again.' : '❌ Error de conexión. Intenta de nuevo.');
+    alert(currentLang === 'en' ? '❌ Connection error.' : '❌ Error de conexión.');
   }
 }
 
@@ -963,4 +1026,3 @@ function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-

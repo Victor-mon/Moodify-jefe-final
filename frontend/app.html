@@ -61,64 +61,78 @@
 <!-- MODAL CONFIGURACIÓN -->
 <div class="config-overlay" id="cfg-overlay" onclick="closeConfigOutside(event)">
   <div class="config-modal">
+
+    <!-- Header -->
     <div class="cfg-header">
-      <span class="cfg-title">Configuracion</span>
-      <button class="cfg-close" onclick="closeConfig()">x</button>
+      <span class="cfg-title">Configuración</span>
+      <button class="cfg-close" onclick="closeConfig()">✕</button>
     </div>
 
-    <div class="cfg-section">
-      <div class="cfg-section-title">Apariencia</div>
-      <div class="cfg-row">
-        <div>
-          <div class="cfg-row-label">Tema</div>
-          <div class="cfg-row-sub" id="cfg-theme-sub">Modo oscuro activo</div>
+    <!-- Grid 2 columnas -->
+    <div class="cfg-grid">
+
+      <!-- Columna izquierda: Apariencia + Idioma -->
+      <div class="cfg-col">
+        <div class="cfg-section-title">Apariencia</div>
+
+        <!-- Tema -->
+        <div class="cfg-pill-row">
+          <div class="cfg-pill-info">
+            <span class="cfg-pill-label">Tema</span>
+            <span class="cfg-pill-sub" id="cfg-theme-sub">Modo oscuro</span>
+          </div>
+          <div class="cfg-toggle" id="cfg-theme-toggle" onclick="toggleTheme()"></div>
         </div>
-        <div class="cfg-toggle" id="cfg-theme-toggle" onclick="toggleTheme()"></div>
+
+        <!-- Idioma — mismo estilo que lang-btn -->
+        <div class="cfg-pill-row" style="margin-top:10px;">
+          <div class="cfg-pill-info">
+            <span class="cfg-pill-label">Idioma del agente</span>
+            <span class="cfg-pill-sub" id="cfg-lang-sub">ES optimizado para México</span>
+          </div>
+          <div class="cfg-lang-btns">
+            <button class="cfg-lang-btn" id="cfg-btn-es" onclick="setAgentLang('es')">ES 🇲🇽</button>
+            <button class="cfg-lang-btn" id="cfg-btn-en" onclick="setAgentLang('en')">EN 🇺🇸</button>
+          </div>
+        </div>
       </div>
-      <div class="cfg-row">
-        <div>
-          <div class="cfg-row-label">Idioma del agente</div>
-          <div class="cfg-row-sub" id="cfg-lang-sub">Espanol esta optimizado para Mexico</div>
+
+      <!-- Columna derecha: Cuenta -->
+      <div class="cfg-col">
+        <div class="cfg-section-title">Cuenta</div>
+
+        <div class="cfg-pill-row">
+          <div class="cfg-pill-info">
+            <span class="cfg-pill-label">Usuario</span>
+            <span class="cfg-pill-sub" id="cfg-username-display">@usuario</span>
+          </div>
+          <button class="cfg-btn-inline" onclick="startChangeUsername()">Cambiar</button>
         </div>
-        <select class="cfg-select" id="cfg-lang-select" onchange="setAgentLang(this.value)">
-          <option value="es">ES — Espanol</option>
-          <option value="en">EN — English</option>
-        </select>
+
+        <div class="cfg-pill-row">
+          <div class="cfg-pill-info">
+            <span class="cfg-pill-label">Correo</span>
+            <span class="cfg-pill-sub" id="cfg-email-display">—</span>
+          </div>
+          <button class="cfg-btn-inline" onclick="startChangeEmail()">Cambiar</button>
+        </div>
+
+        <div class="cfg-pill-row">
+          <div class="cfg-pill-info">
+            <span class="cfg-pill-label">Contraseña</span>
+            <span class="cfg-pill-sub">••••••••</span>
+          </div>
+          <button class="cfg-btn-inline" onclick="startChangePassword()">Cambiar</button>
+        </div>
       </div>
     </div>
 
-    <div class="cfg-section">
-      <div class="cfg-section-title">Cuenta</div>
-      <div class="cfg-row">
-        <div>
-          <div class="cfg-row-label">Nombre de usuario</div>
-          <div class="cfg-row-sub" id="cfg-username-display">@usuario</div>
-        </div>
-        <button class="cfg-btn-inline" onclick="startChangeUsername()">Cambiar</button>
-      </div>
-      <div class="cfg-row">
-        <div>
-          <div class="cfg-row-label">Correo electronico</div>
-          <div class="cfg-row-sub" id="cfg-email-display">—</div>
-        </div>
-        <button class="cfg-btn-inline" onclick="startChangeEmail()">Cambiar</button>
-      </div>
-      <div class="cfg-row">
-        <div>
-          <div class="cfg-row-label">Contrasena</div>
-          <div class="cfg-row-sub">••••••••</div>
-        </div>
-        <button class="cfg-btn-inline" onclick="startChangePassword()">Cambiar</button>
-      </div>
+    <!-- Footer: sesión -->
+    <div class="cfg-footer">
+      <button class="cfg-btn-logout" onclick="doLogout()">↩ Cerrar sesión</button>
+      <button class="cfg-btn-danger" onclick="confirmDeleteAccount()">✕ Eliminar cuenta</button>
     </div>
 
-    <div class="cfg-divider"></div>
-
-    <div class="cfg-section" style="margin-bottom:0;">
-      <div class="cfg-section-title">Sesion</div>
-      <button class="cfg-btn-full cfg-btn-logout" onclick="doLogout()">Cerrar sesion</button>
-      <button class="cfg-btn-full cfg-btn-danger" style="margin-top:8px;" onclick="confirmDeleteAccount()">Eliminar cuenta</button>
-    </div>
   </div>
 </div>
 
@@ -401,8 +415,17 @@ function toggleTheme() {
   /* Re-aplicar fondo inmediatamente con el tema correcto */
   const emo = EMOCIONES_APP[curEmocion];
   const bg  = isLightTheme ? emo.light : emo.dark;
-  if (glA) { glA.style.transition = 'none'; glA.style.background = bg; glA.style.opacity = '1'; }
-  if (glB) { glB.style.transition = 'none'; glB.style.opacity = '0'; }
+  if (glA) {
+  glA.style.transition = 'none';
+  void glA.offsetWidth;  // fuerza reflow — sin esto el browser batche ambos cambios
+  glA.style.background = bg;
+  glA.style.opacity = '1';
+  }
+  if (glB) {
+    glB.style.transition = 'none';
+    void glB.offsetWidth;
+    glB.style.opacity = '0';
+  }
 
   sessionStorage.setItem('moodify_theme', isLightTheme ? 'light' : 'dark');
 }
